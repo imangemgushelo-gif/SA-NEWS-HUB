@@ -57,7 +57,7 @@ const title = clean(section(body, "Approved headline"));
 const category = clean(section(body, "Publication category"));
 const summary = clean(section(body, "Original summary"));
 const publisher = clean(section(body, "Publisher attribution"));
-const sourceUrl = clean(section(body, "Original source URL"));
+const sourceUrl = clean(section(body, "Original source URL")).split(/\r?\n/)[0].trim();
 const allowedCategories = ["South Africa", "World", "Markets & Forex", "Sport", "Technology", "Economic Calendar"];
 
 if (!title || title.includes("[") || title.length < 8 || title.length > 160) {
