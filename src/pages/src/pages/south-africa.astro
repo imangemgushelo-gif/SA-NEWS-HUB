@@ -1,0 +1,100 @@
+---
+const stories = [
+  {
+    title: "South Africa News",
+    summary: "The latest national headlines, public affairs and important developments from across South Africa.",
+    category: "National"
+  },
+  {
+    title: "Business and Economy",
+    summary: "Updates on South African business, jobs, trade and economic developments.",
+    category: "Economy"
+  },
+  {
+    title: "Community News",
+    summary: "Stories about communities, local initiatives and developments across the country.",
+    category: "Community"
+  }
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Latest South African news and national updates." />
+    <title>South Africa News | SA News Hub</title>
+  </head>
+
+  <body>
+    <header>
+      <a href="/">SA NEWS <span>HUB</span></a>
+      <p>News that matters. Markets that move.</p>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/south-africa/">South Africa</a>
+        <a href="/world/">World</a>
+        <a href="/markets-forex/">Markets & Forex</a>
+        <a href="/sport/">Sport</a>
+        <a href="/technology/">Technology</a>
+        <a href="/economic-calendar/">Economic Calendar</a>
+      </nav>
+    </header>
+
+    <main>
+      <p class="eyebrow">SA NEWS HUB · NATIONAL NEWS</p>
+      <h1>South Africa</h1>
+      <p class="intro">
+        Stay informed about the stories shaping our country.
+      </p>
+
+      <div class="stories">
+        {stories.map((story) => (
+          <article>
+            <p class="category">{story.category}</p>
+            <h2>{story.title}</h2>
+            <p>{story.summary}</p>
+          </article>
+        ))}
+      </div>
+
+      <p class="note">
+        News stories will be published here as they are added.
+      </p>
+    </main>
+
+    <footer>© 2026 SA News Hub · Independent news project</footer>
+  </body>
+</html>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    margin: 0;
+    background: #f5f7fb;
+    color: #172033;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  header {
+    background: #101d36;
+    color: white;
+    padding: 24px 6%;
+  }
+
+  header > a {
+    color: white;
+    font-size: 26px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  header span {
+    color: #ffbd59;
+  }
+
+  header p {
+    color: #c6d0e0;
