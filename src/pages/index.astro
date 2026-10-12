@@ -22,7 +22,7 @@ const sections = [
       <p class="tagline">News that matters. Markets that move.</p>
       <nav aria-label="Main navigation">
         {sections.map((section) => (
-          <a href="#news">{section}</a>
+          <a href={`/${section.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-")}/`}>{section}</a>
         ))}
       </nav>
     </header>
