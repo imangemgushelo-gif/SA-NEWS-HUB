@@ -6,7 +6,7 @@
 - Runs on a five-minute GitHub Actions schedule (GitHub may delay scheduled runs).
 - Creates one GitHub Issue per newly discovered source URL as the pending editorial-review queue.
 - Emails a notification when new pending issues are created.
-- Does **not** publish stories. This workflow has no deployment, content-writing, or publishing step. An issue being created, closed, or commented on does not publish it.
+- Keeps discovery separate from publishing. New stories are never published just because an issue is created, closed, or commented on. Publishing requires an explicit owner command, a pull-request review, and a merge into `main`.
 
 ## One-time Gmail setup
 
@@ -26,7 +26,15 @@ Do not put passwords or app passwords in source files, issues, commits, or chat 
 
 Open the repository's **Issues** tab. New stories are titled `[Pending review] [Category] …` and include the original story link plus a short feed summary. Verify each item with the original publisher and write your own summary with attribution before deciding whether it should be used.
 
-This initial version intentionally provides a human review queue only. Approving or closing an issue does not add the story to the public site; an explicit, separately reviewed publishing workflow would be required for that.
+## Explicit approval and publishing
+
+1. Open a pending review issue and verify the story at the original publisher.
+2. Replace every bracketed instruction in the **Publication draft** section. Use an original, fact-checked summary in your own words and name the publisher.
+3. Add a new issue comment containing exactly `/approve`. Only the repository owner can trigger the workflow.
+4. The workflow prepares a pull request. It does **not** publish the story immediately.
+5. Review the pull request. Merge it into `main` only when you're ready to publish. The site build then includes the story on its category page and its own story page.
+
+Do not merge a story whose summary, category, or source attribution is incomplete. The workflow rejects missing fields and only accepts the six listed categories. The original publisher's article remains the source; SA News Hub should publish an original summary, not a copied article.
 
 ## Notes
 
