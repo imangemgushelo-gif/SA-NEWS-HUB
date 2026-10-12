@@ -72,7 +72,7 @@ let parsedUrl;
 try { parsedUrl = new URL(sourceUrl); } catch { throw new Error("Fill in Original source URL with a valid HTTPS article link."); }
 if (parsedUrl.protocol !== "https:") throw new Error("The original source URL must use HTTPS.");
 
-const contentPath = "/contents/src/src/data/news.js";
+const contentPath = "/contents/src/data/news.js";
 const file = await api(contentPath);
 const existingText = Buffer.from(file.content, "base64").toString("utf8");
 const match = existingText.match(/export\s+const\s+news\s*=\s*(\[[\s\S]*\])\s*;?/);
