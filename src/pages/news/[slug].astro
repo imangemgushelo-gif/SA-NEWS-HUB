@@ -1,0 +1,52 @@
+---
+import { news } from "../../src/data/news.js";
+
+export function getStaticPaths() {
+  return news.map((story) => ({
+    params: { slug: story.slug },
+    props: { story }
+  }));
+}
+
+const { story } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={story.summary} />
+    <title>{story.title} | SA News Hub</title>
+  </head>
+  <body>
+    <header><a href="/">SA NEWS <span>HUB.</span></a></header>
+    <main>
+      <p class="eyebrow">{story.category} · SA NEWS HUB</p>
+      <h1>{story.title}</h1>
+      <p class="summary">{story.summary}</p>
+      <p class="attribution">
+        Reporting source: <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer">{story.publisher}</a>
+      </p>
+      <p class="note">This is an original summary prepared for SA News Hub. Read the linked publisher's report for the full coverage.</p>
+      <a class="back" href={story.category === "South Africa" ? "/south-africa/" : story.category === "World" ? "/world/" : story.category === "Markets & Forex" ? "/markets-forex/" : story.category === "Sport" ? "/sport/" : story.category === "Technology" ? "/technology/" : "/economic-calendar/"}>← Back to {story.category}</a>
+    </main>
+    <footer>© 2026 SA News Hub · Independent news project</footer>
+  </body>
+</html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(body) { margin: 0; background: #f5f7fb; color: #172238; font-family: Arial, Helvetica, sans-serif; }
+  header { padding: 24px max(20px, calc((100% - 900px) / 2)); background: #101a2d; }
+  header a { color: white; font-size: 22px; font-weight: 900; text-decoration: none; }
+  header span { color: #ffc66d; }
+  main { max-width: 900px; margin: 0 auto; padding: 45px 22px 60px; }
+  .eyebrow { color: #176b45; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+  h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.15; letter-spacing: -1px; }
+  .summary { font-size: 19px; line-height: 1.8; }
+  .attribution, .note { color: #59677b; line-height: 1.8; }
+  .attribution a { color: #176b45; }
+  .note { padding: 15px; background: #eaf0f7; border-radius: 6px; }
+  .back { display: inline-block; margin-top: 20px; color: #176b45; font-weight: 800; text-decoration: none; }
+  footer { padding: 24px; background: #101a2d; color: #c6d0e0; text-align: center; font-size: 12px; }
+</style>
