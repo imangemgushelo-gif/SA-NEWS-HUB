@@ -9,6 +9,11 @@ permissions:
   issues: write
   pull-requests: write
 
+# Serialize approvals for the same issue so two /approve comments cannot race.
+concurrency:
+  group: publish-approved-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   prepare-publication:
     if: github.event.issue.pull_request == null && github.event.comment.body == '/approve' && github.actor == github.repository_owner

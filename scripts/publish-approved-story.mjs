@@ -27,17 +27,19 @@ const headers = {
 };
 
 async function api(path, options = {}) {
+  const { allowNotFound = false, ...fetchOptions } = options;
   const response = await fetch(apiBase + "/repos/" + repo + path, {
-    ...options,
+    ...fetchOptions,
     headers: {
       ...headers,
-      ...(options.headers || {}),
-      ...(options.body ? { "Content-Type": "application/json" } : {})
+      ...(fetchOptions.headers || {}),
+      ...(fetchOptions.body ? { "Content-Type": "application/json" } : {})
     }
   });
   const text = await response.text();
   let data;
   try { data = text ? JSON.parse(text) : {}; } catch { data = { message: text }; }
+  if (allowNotFound && response.status === 404) return null;
   if (!response.ok) throw new Error("GitHub API " + response.status + ": " + (data.message || response.statusText));
   return data;
 }
@@ -112,7 +114,26 @@ const newStory = {
 };
 const updatedText = "export const news = " + JSON.stringify([newStory, ...stories], null, 2) + ";\n";
 const branch = "news/approved-issue-" + issue.number;
+const existingPrs = await api("/pulls?state=open&head=" + encodeURIComponent(owner + ":" + branch) + "&base=main");
+if (existingPrs.length) {
+  const existingPr = existingPrs[0];
+  await api("/issues/" + issue.number + "/comments", {
+    method: "POST",
+    body: JSON.stringify({
+      body: "A publication pull request already exists for this approval: " + existingPr.html_url + "\n\nReview that pull request instead of creating a duplicate. The story is not live until it is merged."
+    })
+  });
+  console.log("An open publication pull request already exists: " + existingPr.html_url);
+  process.exit(0);
+}
+
 const mainRef = await api("/git/ref/heads/main");
+const existingRef = await api("/git/ref/heads/" + branch, { allowNotFound: true });
+if (existingRef) {
+  // A previous failed run can leave an orphan branch behind. If there is no open PR,
+  // rebuild this issue-specific branch from main so a retry is safe and repeatable.
+  await api("/git/refs/heads/" + branch, { method: "DELETE" });
+}
 await api("/git/refs", {
   method: "POST",
   body: JSON.stringify({ ref: "refs/heads/" + branch, sha: mainRef.object.sha })
