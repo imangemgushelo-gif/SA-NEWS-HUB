@@ -1,0 +1,77 @@
+---
+const sections = [
+  "South Africa",
+  "World",
+  "Markets & Forex",
+  "Sport",
+  "Technology",
+  "Economic Calendar"
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="South African news, world news, markets, sport and technology." />
+    <title>SA News Hub | News that matters</title>
+  </head>
+  <body>
+    <header>
+      <p class="brand">SA NEWS <span>HUB</span></p>
+      <p class="tagline">News that matters. Markets that move.</p>
+      <nav aria-label="Main navigation">
+        {sections.map((section) => (
+          <a href="#news">{section}</a>
+        ))}
+      </nav>
+    </header>
+    <main>
+      <section class="welcome">
+        <p class="eyebrow">YOUR DAILY BRIEFING</p>
+        <h1>Stay informed.<br />Stay ahead.</h1>
+        <p>South African stories, global events and the numbers shaping your day.</p>
+      </section>
+      <section id="news">
+        <p class="eyebrow">EXPLORE THE LATEST</p>
+        <h2>Your news, all in one place</h2>
+        <div class="grid">
+          {sections.map((section, index) => (
+            <article class="tile">
+              <p class="number">0{index + 1}</p>
+              <h3>{section}</h3>
+              <p>Updates and stories coming soon.</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <p class="note">We’re building your daily destination for trusted news and useful market information.</p>
+    </main>
+    <footer>© 2026 SA News Hub · Independent news project</footer>
+  </body>
+</html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(body) { margin: 0; background: #f5f7fb; color: #172033; font-family: Arial, Helvetica, sans-serif; }
+  header { background: #101d36; color: white; padding: 24px 6%; }
+  .brand { font-size: 27px; font-weight: 900; letter-spacing: 1px; margin: 0; }
+  .brand span { color: #ffbd59; }
+  .tagline { color: #c6d0e0; font-size: 14px; }
+  nav { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 22px; }
+  nav a { color: white; text-decoration: none; font-size: 14px; }
+  main { max-width: 1050px; margin: auto; padding: 28px 20px 50px; }
+  .welcome { background: #18345c; color: white; padding: 36px 28px; border-radius: 18px; }
+  .eyebrow { color: #c17b16; font-size: 12px; font-weight: bold; letter-spacing: 2px; }
+  .welcome .eyebrow { color: #ffcf83; }
+  h1 { font-size: clamp(36px, 8vw, 62px); line-height: 1.05; margin: 14px 0; }
+  .welcome > p:last-child { line-height: 1.6; max-width: 500px; color: #e1e9f5; }
+  h2 { font-size: 26px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .tile { background: white; border: 1px solid #e1e6ef; border-radius: 14px; padding: 20px; }
+  .number { color: #c17b16; font-weight: bold; }
+  .tile h3 { margin-bottom: 8px; }
+  .tile > p:last-child, .note { color: #647086; line-height: 1.6; }
+  .note { margin-top: 28px; }
+  footer { background: #101d36; color: #c6d0e0; padding: 24px 6%; font-size: 13px; }
+</style>
