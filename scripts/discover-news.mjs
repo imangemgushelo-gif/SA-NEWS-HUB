@@ -66,9 +66,29 @@ for (const feed of feeds) {
         "- [ ] Verify the story against the original publisher.",
         "- [ ] Check the date, accuracy, and relevance.",
         "- [ ] Write an original short summary and credit the publisher.",
-        "- [ ] Explicitly approve before any publication workflow is added.",
+        "- [ ] Fill in every field in the publication draft below.",
+        "- [ ] Only then comment exactly /approve to request a publication pull request.",
         "",
-        "Closing or commenting on this issue does not publish it. Publishing is not automated by this workflow."
+        "### Publication draft — required before approval",
+        "",
+        "Replace the bracketed instructions under each heading with your own checked information.",
+        "",
+        "#### Approved headline",
+        "[Write a clear, accurate headline]",
+        "",
+        "#### Publication category",
+        "[Choose exactly one: South Africa, World, Markets & Forex, Sport, Technology, Economic Calendar]",
+        "",
+        "#### Original summary",
+        "[Write an original fact-checked summary in your own words, 40–900 characters]",
+        "",
+        "#### Publisher attribution",
+        "[Name of the original publisher]",
+        "",
+        "#### Original source URL",
+        "[Paste the original HTTPS article link]",
+        "",
+        "Commenting /approve will prepare a pull request, not publish the story. The story becomes live only after you review and merge that pull request into main."
       ].join("\n");
 
       const issueUrl = execFileSync("gh", [
