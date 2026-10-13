@@ -23,11 +23,11 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
           <div>
             <p class="eyebrow">ECONOMIC DATA</p>
             <h2 id="calendar-title">US Market-Moving Calendar</h2>
-            <p class="calendar-intro">Follow major US releases including Non-Farm Payrolls (NFP), CPI inflation, and Federal Reserve rate decisions.</p>
+            <p class="calendar-intro">Follow four major US releases: Non-Farm Payrolls (NFP), CPI inflation, PPI inflation, and Federal Reserve (FOMC) rate decisions.</p>
           </div>
           <button id="refresh-calendar" type="button">Refresh data</button>
         </div>
-        <p class="timezone">Event times shown in South African time (SAST). Figures come from the calendar data provider and may be revised.</p>
+        <p class="timezone">Event times shown in South African time (SAST). Forecasts show published economist consensus when available; actual and previous figures may be revised.</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -45,7 +45,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
           </table>
         </div>
         <p id="calendar-status" class="calendar-status" role="status">Connecting to economic calendar…</p>
-        <p class="disclaimer">Calendar data is for general information only, not financial advice or a trading signal. Always check official release sources; figures and forecasts can change.</p>
+        <p class="disclaimer">Calendar data: <a href="https://www.financecalendar.com/api/" target="_blank" rel="noreferrer">FinanceCalendar</a>. Forecasts are consensus estimates when published, not guarantees. This calendar is for general information only, not financial advice or a trading signal; verify important releases with the original agency.</p>
       </section>
 
       <PublishedNews category={title} />
@@ -100,7 +100,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
       const td = document.createElement("td");
       td.colSpan = 5;
       td.className = "state";
-      td.textContent = "No matching NFP, CPI, or Federal Reserve events were returned for this period.";
+      td.textContent = "No matching NFP, CPI, PPI, or Federal Reserve events were returned for this period.";
       tr.append(td);
       rows.append(tr);
       return;
@@ -112,7 +112,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
         makeCell(formatDate(event.date), "date-cell"),
         makeCell(event.event, "event-cell"),
         makeCell(event.actual, event.actual ? "actual-value" : ""),
-        makeCell(event.forecast),
+        makeCell(event.forecast || "Not published"),
         makeCell(event.previous)
       );
       rows.append(tr);
