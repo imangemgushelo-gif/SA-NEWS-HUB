@@ -1,0 +1,70 @@
+/* Lightweight, decorative category-page artwork. All artwork stays behind content. */
+body[data-page-theme] main { position: relative; isolation: isolate; }
+body[data-page-theme] main::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: 0; right: max(-30px, calc((100vw - 1000px) / -2)); width: min(58vw, 620px);
+  height: 420px; opacity: .13; background-repeat: no-repeat; background-position: top right; background-size: contain;
+  mask-image: linear-gradient(to left, #000 35%, transparent 100%);
+}
+body[data-page-theme] main::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: 0; left: -20px; right: -20px; height: 440px;
+  background: linear-gradient(180deg, var(--theme-wash, transparent), transparent 88%);
+}
+body[data-page-theme] h1 { position: relative; }
+body[data-page-theme] .eyebrow { color: var(--theme-accent, #176b45); }
+body[data-page-theme] .back { color: var(--theme-accent, #176b45); }
+body[data-page-theme="south-africa"] { --theme-accent:#18734c; --theme-wash:rgba(22,115,76,.08); }
+body[data-page-theme="south-africa"] main::before {
+ background-image: radial-gradient(ellipse at 60% 35%, transparent 30%, rgba(24,115,76,.08) 31%, transparent 32%), repeating-linear-gradient(135deg, transparent 0 19px, rgba(24,115,76,.28) 20px 21px, transparent 22px 40px);
+ clip-path: polygon(25% 5%,65% 0,90% 18%,84% 48%,70% 64%,58% 98%,42% 85%,36% 60%,15% 45%,20% 20%);
+}
+body[data-page-theme="world"] { --theme-accent:#2866a3; --theme-wash:rgba(40,102,163,.08); }
+body[data-page-theme="world"] main::before {
+ background-image: radial-gradient(ellipse at 60% 40%, rgba(40,102,163,.22), transparent 58%), repeating-radial-gradient(ellipse at 60% 40%, transparent 0 23px, rgba(40,102,163,.28) 24px 25px, transparent 26px 43px);
+ border-radius:50%;
+}
+body[data-page-theme="markets"] { --theme-accent:#2866a3; --theme-wash:rgba(40,102,163,.09); }
+body[data-page-theme="markets"] main::before {
+ opacity:.20;
+ background-image:
+ linear-gradient(to top, transparent 0 18%, rgba(219,70,81,.85) 18% 19%, transparent 19% 100%),
+ linear-gradient(to top, transparent 0 42%, rgba(44,112,190,.9) 42% 43%, transparent 43% 100%),
+ linear-gradient(to top, transparent 0 31%, rgba(219,70,81,.85) 31% 32%, transparent 32% 100%),
+ linear-gradient(to top, transparent 0 64%, rgba(44,112,190,.9) 64% 65%, transparent 65% 100%),
+ linear-gradient(90deg, transparent 0 8%, rgba(219,70,81,.85) 8% 11%, transparent 11% 20%, rgba(44,112,190,.9) 20% 24%, transparent 24% 34%, rgba(219,70,81,.85) 34% 38%, transparent 38% 48%, rgba(44,112,190,.9) 48% 53%, transparent 53% 64%, rgba(219,70,81,.85) 64% 69%, transparent 69% 80%, rgba(44,112,190,.9) 80% 85%, transparent 85%);
+ mask-image: linear-gradient(to left, #000 25%, transparent 100%);
+}
+body[data-page-theme="sport"] { --theme-accent:#326b9b; --theme-wash:rgba(12,25,43,.15); }
+body[data-page-theme="sport"] main::before {
+ opacity:.15;
+ background-image:
+ linear-gradient(90deg, transparent 49%, rgba(14,32,55,.8) 49.5% 50.5%, transparent 51%),
+ linear-gradient(0deg, transparent 48%, rgba(14,32,55,.8) 48.5% 49.5%, transparent 50%),
+ repeating-linear-gradient(0deg, transparent 0 27px, rgba(14,32,55,.45) 28px 29px),
+ repeating-linear-gradient(90deg, transparent 0 34px, rgba(14,32,55,.45) 35px 36px),
+ radial-gradient(circle at 65% 30%, rgba(14,32,55,.95) 0 10%, transparent 10.5%),
+ radial-gradient(ellipse at 64% 54%, rgba(14,32,55,.8) 0 17%, transparent 17.5%);
+ background-size:100% 100%;
+ mask-image: linear-gradient(to left, #000 30%, transparent 100%);
+}
+body[data-page-theme="sport"] main::after { background:linear-gradient(180deg,rgba(10,20,36,.13),transparent 90%); }
+body[data-page-theme="technology"] { --theme-accent:#6450a6; --theme-wash:rgba(100,80,166,.08); }
+body[data-page-theme="technology"] main::before {
+ background-image: radial-gradient(circle at 65% 32%, rgba(100,80,166,.28) 0 8%, transparent 8.5%), repeating-linear-gradient(0deg, transparent 0 28px, rgba(100,80,166,.28) 29px 30px, transparent 31px 48px), repeating-linear-gradient(90deg, transparent 0 28px, rgba(100,80,166,.28) 29px 30px, transparent 31px 48px);
+}
+body[data-page-theme="calendar"] { --theme-accent:#a66a13; --theme-wash:rgba(166,106,19,.08); }
+body[data-page-theme="calendar"] main::before {
+ background-image: repeating-linear-gradient(0deg, transparent 0 39px, rgba(166,106,19,.24) 40px 41px), repeating-linear-gradient(90deg, transparent 0 39px, rgba(166,106,19,.24) 40px 41px), radial-gradient(circle at 65% 40%, transparent 0 22%, rgba(166,106,19,.28) 22.5% 23.5%, transparent 24% 32%, rgba(166,106,19,.22) 32.5% 33.5%, transparent 34%);
+}
+body[data-page-theme="home"] main::before {
+ opacity:.09;
+ background-image: repeating-linear-gradient(0deg, transparent 0 28px, #9bb4d4 29px 30px), repeating-linear-gradient(90deg, transparent 0 38px, #9bb4d4 39px 40px);
+}
+@media (max-width: 640px) {
+ body[data-page-theme] main::before { width:95vw; height:300px; right:-8px; opacity:.10; }
+ body[data-page-theme="markets"] main::before, body[data-page-theme="sport"] main::before { opacity:.12; }
+}
+@media (prefers-reduced-motion: reduce) {
+ body[data-page-theme] * { scroll-behavior:auto; }
+}
