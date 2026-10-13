@@ -1,5 +1,6 @@
 ---
 import PublishedNews from "../components/PublishedNews.astro";
+import "../styles/page-themes.css";
 const title = "World";
 const intro = "Important developments from around the world.";
 ---
@@ -11,7 +12,7 @@ const intro = "Important developments from around the world.";
     <meta name="description" content={intro} />
     <title>{title} | SA News Hub</title>
   </head>
-  <body>
+  <body data-page-theme="world">
     <header><a href="/">SA NEWS <span>HUB.</span></a></header>
     <main>
       <p class="eyebrow">SA NEWS HUB · NEWSROOM</p>
