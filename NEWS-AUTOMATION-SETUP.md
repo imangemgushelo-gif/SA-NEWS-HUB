@@ -40,6 +40,19 @@ The workflow uses Cloudflare's `@cf/zai-org/glm-4.7-flash` model. Cloudflare's a
 
 The AI sees only a Google News RSS headline and short snippet, not necessarily the full article. It can make mistakes or miss context, and it cannot independently confirm breaking news. Treat its draft as a starting point. Open the source link, verify the key facts, and reject the issue if the story or draft looks wrong. Never approve a story you have not checked.
 
+## Automatic publishing of checked stories
+
+The discovery workflow can automatically publish a story only when all of these checks pass:
+
+- Cloudflare AI returns a usable headline and summary that pass basic length/category checks.
+- The story link resolves successfully over HTTPS to a publisher on the explicit trusted-publisher allowlist in `scripts/discover-news.mjs`.
+- The normalized source URL and headline are not already present in the published news data.
+- The GitHub token has permission to update `src/src/data/news.js`.
+
+Stories with missing AI drafts, unrecognized publishers, unreachable links, duplicate content, or failed checks remain in the pending review queue. This is a basic filter, not a guarantee of factual accuracy: the AI draft is based on the RSS title/snippet and may omit context. Check the live site and email notifications regularly. The allowlist is intentionally conservative, so some legitimate sources will remain pending until added to the code after review.
+
+Automatic publication commits directly to `main`; if Cloudflare Pages is configured to deploy from `main`, the site updates after the deployment finishes.
+
 ## Reviewing stories
 
 Open the repository's **Issues** tab. New stories are titled `[Pending review] [Category] …`. Each issue includes a draft, source link, category, and a short review checklist.

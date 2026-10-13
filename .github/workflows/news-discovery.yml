@@ -1,4 +1,4 @@
-name: Discover news and request approval
+name: Discover news and auto-publish checked stories
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 concurrency:
