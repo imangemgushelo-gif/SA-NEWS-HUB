@@ -24,7 +24,6 @@ const transporter = nodemailer.createTransport({
 const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
 const aiConfigured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
-const categories = feeds.map((feed) => feed.category);
 
 function issueExists(url) {
   try {
@@ -145,7 +144,7 @@ for (const feed of feeds) {
         "### Publication draft",
         "",
         "The draft is a starting point, not independent verification. The AI only receives the RSS headline and snippet, which may omit important context.",
-        "",
+        ...(draft?.editorialNote ? [`**AI note:** ${draft.editorialNote}`, ""] : []),
         "#### Approved headline",
         draft?.headline || `[AI draft unavailable — suggested feed headline: ${title}]`,
         "",
