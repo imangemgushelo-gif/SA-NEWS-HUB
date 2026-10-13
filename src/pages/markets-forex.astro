@@ -17,12 +17,140 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
       <p class="eyebrow">SA NEWS HUB · NEWSROOM</p>
       <h1>{title}</h1>
       <p class="intro">{intro}</p>
+
+      <section class="calendar" aria-labelledby="calendar-title">
+        <div class="calendar-heading">
+          <div>
+            <p class="eyebrow">ECONOMIC DATA</p>
+            <h2 id="calendar-title">US Market-Moving Calendar</h2>
+            <p class="calendar-intro">Follow major US releases including Non-Farm Payrolls (NFP), CPI inflation, and Federal Reserve rate decisions.</p>
+          </div>
+          <button id="refresh-calendar" type="button">Refresh data</button>
+        </div>
+        <p class="timezone">Event times shown in South African time (SAST). Figures come from the calendar data provider and may be revised.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Date / SAST</th>
+                <th scope="col">Event</th>
+                <th scope="col">Actual</th>
+                <th scope="col">Forecast</th>
+                <th scope="col">Previous</th>
+              </tr>
+            </thead>
+            <tbody id="calendar-rows">
+              <tr><td colspan="5" class="state">Loading economic calendar…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="calendar-status" class="calendar-status" role="status">Connecting to economic calendar…</p>
+        <p class="disclaimer">Calendar data is for general information only, not financial advice or a trading signal. Always check official release sources; figures and forecasts can change.</p>
+      </section>
+
       <PublishedNews category={title} />
       <a class="back" href="/">← Back to Home</a>
     </main>
     <footer>© 2026 SA News Hub · Independent news project</footer>
   </body>
 </html>
+
+<script>
+  const rows = document.querySelector("#calendar-rows");
+  const status = document.querySelector("#calendar-status");
+  const refreshButton = document.querySelector("#refresh-calendar");
+
+  function parseProviderDate(value) {
+    if (!value) return null;
+    const text = String(value).trim();
+    let date;
+    if (/^\d{4}-\d{2}-\d{2}T/.test(text)) {
+      date = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(text) ? text : text + "Z");
+    } else {
+      date = new Date(text + " UTC");
+    }
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatDate(value) {
+    const date = parseProviderDate(value);
+    if (!date) return value || "Time TBC";
+    return new Intl.DateTimeFormat("en-ZA", {
+      timeZone: "Africa/Johannesburg",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).format(date);
+  }
+
+  function makeCell(value, className = "") {
+    const cell = document.createElement("td");
+    cell.textContent = value || "—";
+    if (className) cell.className = className;
+    return cell;
+  }
+
+  function renderEvents(events) {
+    rows.replaceChildren();
+    if (!events || events.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 5;
+      td.className = "state";
+      td.textContent = "No matching NFP, CPI, or Federal Reserve events were returned for this period.";
+      tr.append(td);
+      rows.append(tr);
+      return;
+    }
+
+    for (const event of events) {
+      const tr = document.createElement("tr");
+      tr.append(
+        makeCell(formatDate(event.date), "date-cell"),
+        makeCell(event.event, "event-cell"),
+        makeCell(event.actual, event.actual ? "actual-value" : ""),
+        makeCell(event.forecast),
+        makeCell(event.previous)
+      );
+      rows.append(tr);
+    }
+  }
+
+  async function loadCalendar() {
+    refreshButton.disabled = true;
+    status.textContent = "Updating calendar data…";
+    try {
+      const response = await fetch("/api/economic-calendar", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) {
+        renderEvents([]);
+        status.textContent = data.error || "The calendar feed is not available right now.";
+        if (data.setupRequired) {
+          status.textContent = "Calendar layout is ready. Add the provider API key in Cloudflare Pages settings to load live figures.";
+        }
+        return;
+      }
+      renderEvents(data.events);
+      const updated = data.updatedAt ? new Date(data.updatedAt) : new Date();
+      status.textContent = "Data updated " + new Intl.DateTimeFormat("en-ZA", {
+        timeZone: "Africa/Johannesburg",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(updated) + " SAST.";
+    } catch {
+      renderEvents([]);
+      status.textContent = "Could not connect to the calendar. Please try refreshing.";
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  refreshButton.addEventListener("click", loadCalendar);
+  loadCalendar();
+</script>
 
 <style>
   :global(*) { box-sizing: border-box; }
@@ -34,6 +162,32 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
   .eyebrow { color: #176b45; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
   h1 { margin: 10px 0; font-size: clamp(32px, 6vw, 48px); }
   .intro { color: #59677b; line-height: 1.7; }
+  .calendar { margin: 32px 0 42px; padding: 24px; border: 1px solid #dfe5ee; border-radius: 18px; background: #fff; box-shadow: 0 8px 30px rgba(16, 26, 45, .05); }
+  .calendar-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+  h2 { margin: 6px 0 8px; font-size: clamp(22px, 4vw, 30px); }
+  .calendar-intro, .timezone, .calendar-status, .disclaimer { color: #59677b; line-height: 1.6; font-size: 13px; }
+  .calendar-intro { margin: 0; max-width: 650px; }
+  button { flex: 0 0 auto; padding: 11px 15px; border: 0; border-radius: 9px; background: #176b45; color: #fff; font-weight: 800; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .timezone { margin: 20px 0 12px; }
+  .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+  table { width: 100%; min-width: 680px; border-collapse: collapse; text-align: left; font-size: 13px; }
+  th { padding: 13px 12px; background: #101a2d; color: #fff; font-size: 12px; white-space: nowrap; }
+  td { padding: 13px 12px; border-bottom: 1px solid #e9edf3; vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  .date-cell { min-width: 145px; color: #59677b; white-space: nowrap; }
+  .event-cell { min-width: 180px; font-weight: 700; }
+  .actual-value { color: #176b45; font-weight: 900; }
+  .state { padding: 24px; text-align: center; color: #59677b; }
+  .calendar-status { margin: 12px 0; }
+  .disclaimer { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #e9edf3; font-size: 12px; }
   .back { display: inline-block; margin-top: 28px; color: #176b45; font-weight: 800; text-decoration: none; }
   footer { padding: 24px; background: #101a2d; color: #c6d0e0; text-align: center; font-size: 12px; }
+  @media (max-width: 600px) {
+    main { padding: 30px 14px 48px; }
+    .calendar { padding: 16px; border-radius: 13px; }
+    .calendar-heading { flex-direction: column; }
+    button { width: 100%; }
+  }
 </style>
