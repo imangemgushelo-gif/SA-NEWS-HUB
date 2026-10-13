@@ -1,5 +1,6 @@
 ---
 import PublishedNews from "../components/PublishedNews.astro";
+import "../styles/page-themes.css";
 const title = "South Africa";
 const intro = "Latest news from across South Africa.";
 ---
@@ -11,7 +12,7 @@ const intro = "Latest news from across South Africa.";
     <meta name="description" content={intro} />
     <title>{title} | SA News Hub</title>
   </head>
-  <body>
+  <body data-page-theme="south-africa">
     <header><a href="/">SA NEWS <span>HUB.</span></a></header>
     <main>
       <p class="eyebrow">SA NEWS HUB · NEWSROOM</p>
