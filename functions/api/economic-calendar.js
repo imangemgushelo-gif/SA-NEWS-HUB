@@ -1,4 +1,4 @@
-const BASE_URL = "https://xoomar.com/api/markets/calendar";
+const BASE_URL = "https://www.financecalendar.com/wp-json/fc/v1/calendar";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -14,6 +14,20 @@ function isoDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function eventMatches(item) {
+  const name = String(item.name || item.title || item.event || item.series || "").toLowerCase();
+  const series = String(item.series || "").toLowerCase();
+  const category = String(item.category || "").toLowerCase();
+  return (
+    /non.?farm payroll|employment situation|jobs report/.test(name) ||
+    /consumer price index|\bcpi\b/.test(name) ||
+    /producer price index|\bppi\b/.test(name) ||
+    /fomc|federal funds rate|fed rate decision|fed interest rate/.test(name) ||
+    ["nfp", "jobs", "cpi", "ppi", "fomc"].includes(series) ||
+    /central.?bank|monetary.?policy/.test(category) && /federal reserve|fomc/.test(name)
+  );
+}
+
 export async function onRequest() {
   const today = new Date();
   const start = new Date(today);
@@ -24,7 +38,8 @@ export async function onRequest() {
   const url = new URL(BASE_URL);
   url.searchParams.set("from", isoDate(start));
   url.searchParams.set("to", isoDate(end));
-  url.searchParams.set("importance", "high");
+  url.searchParams.set("impact", "high");
+  url.searchParams.set("limit", "500");
 
   try {
     const response = await fetch(url.toString(), {
@@ -40,48 +55,34 @@ export async function onRequest() {
     }
 
     const payload = await response.json();
-    if (!payload || !Array.isArray(payload.data)) {
+    const records = Array.isArray(payload) ? payload : payload.events;
+    if (!Array.isArray(records)) {
       return json({ events: [], error: "The calendar provider returned an unexpected response." }, 502);
     }
 
-    const keywords = [
-      "nonfarm payroll",
-      "non-farm payroll",
-      "employment situation",
-      "consumer price index",
-      "cpi",
-      "fomc",
-      "fed rate decision",
-      "federal funds rate",
-      "fomc minutes",
-    ];
-
-    const events = payload.data
-      .filter((item) => {
-        const name = String(item.eventName || "").toLowerCase();
-        return keywords.some((keyword) => name.includes(keyword));
-      })
+    const events = records
+      .filter(eventMatches)
       .map((item) => ({
-        id: String(item.id || `${item.scheduledAt}-${item.eventName}`),
-        date: item.scheduledAt || "",
+        id: String(item.id || item.slug || `${item.time_utc || item.date || ""}-${item.name || item.title || item.series || "event"}`),
+        date: item.time_utc || item.date || item.datetime || "",
         country: "United States",
-        event: item.eventName || "Economic release",
+        event: item.name || item.title || item.event || item.series || "Economic release",
         actual: item.actual == null ? "" : String(item.actual),
-        forecast: item.forecast == null ? "" : String(item.forecast),
-        previous: item.previous == null ? "" : String(item.previous),
-        importance: item.importance === "high" ? 3 : 0,
-        source: item.source || "XOOMAR",
-        sourceUrl: "https://xoomar.com/economic-calendar-api",
-        period: item.periodLabel || "",
+        forecast: item.consensus == null ? "" : String(item.consensus),
+        previous: item.prior == null ? (item.previous == null ? "" : String(item.previous)) : String(item.prior),
+        importance: String(item.impact || item.importance || "").toLowerCase() === "high" ? 3 : 0,
+        source: "FinanceCalendar",
+        sourceUrl: item.url || "https://www.financecalendar.com/api/",
         unit: item.unit || "",
+        period: item.period || item.period_label || "",
       }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return json({
       events,
-      updatedAt: payload.updatedAt || new Date().toISOString(),
-      attribution: "Data: XOOMAR, using release schedules and figures from official agencies.",
-      sourceUrl: "https://xoomar.com/economic-calendar-api",
+      updatedAt: payload.updatedAt || payload.updated_at || new Date().toISOString(),
+      attribution: "Data: FinanceCalendar",
+      sourceUrl: "https://www.financecalendar.com/api/",
     });
   } catch {
     return json({
