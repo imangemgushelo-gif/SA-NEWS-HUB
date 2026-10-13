@@ -55,7 +55,7 @@ export async function onRequest() {
     }
 
     const payload = await response.json();
-    const records = Array.isArray(payload) ? payload : payload.events;
+    const records = Array.isArray(payload) ? payload : (payload.events || payload.data || payload.calendar);
     if (!Array.isArray(records)) {
       return json({ events: [], error: "The calendar provider returned an unexpected response." }, 502);
     }
