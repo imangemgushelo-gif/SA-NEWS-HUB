@@ -27,7 +27,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
           </div>
           <button id="refresh-calendar" type="button">Refresh data</button>
         </div>
-        <p class="timezone">Event times shown in South African time (SAST). Figures come from the calendar data provider and may be revised.</p>
+        <p class="timezone">Event times shown in South African time (SAST). Actual and previous figures may be revised. Consensus forecasts are not provided by this free feed.</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -45,7 +45,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
           </table>
         </div>
         <p id="calendar-status" class="calendar-status" role="status">Connecting to economic calendar…</p>
-        <p class="disclaimer">Calendar data is for general information only, not financial advice or a trading signal. Always check official release sources; figures and forecasts can change.</p>
+        <p class="disclaimer">Calendar data: <a href="https://xoomar.com/economic-calendar-api" target="_blank" rel="noreferrer">XOOMAR</a>, using release schedules and figures from official agencies. Forecast consensus is not included. This calendar is for general information only, not financial advice or a trading signal; verify important releases with the original agency.</p>
       </section>
 
       <PublishedNews category={title} />
@@ -112,7 +112,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
         makeCell(formatDate(event.date), "date-cell"),
         makeCell(event.event, "event-cell"),
         makeCell(event.actual, event.actual ? "actual-value" : ""),
-        makeCell(event.forecast),
+        makeCell(event.forecast || "Not published"),
         makeCell(event.previous)
       );
       rows.append(tr);
