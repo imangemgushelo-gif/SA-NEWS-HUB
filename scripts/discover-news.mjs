@@ -80,7 +80,7 @@ async function autoPublishStory({ title, category, summary, sourceUrl, publisher
     throw new Error("Draft failed basic content validation");
   }
 
-  const apiUrl = "https://api.github.com/repos/" + repo + "/contents/src/src/data/news.js";
+  const apiUrl = "https://api.github.com/repos/" + repo + "/contents/src/data/news.js";
   const headers = {
     Authorization: "Bearer " + token,
     Accept: "application/vnd.github+json",
