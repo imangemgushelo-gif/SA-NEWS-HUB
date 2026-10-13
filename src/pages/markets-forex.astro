@@ -28,6 +28,13 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
           <button id="refresh-calendar" type="button">Refresh data</button>
         </div>
         <p class="timezone">Event times shown in South African time (SAST). Forecasts show published economist consensus when available; actual and previous figures may be revised.</p>
+        <fieldset class="event-filters">
+          <legend>Choose the events you want to see</legend>
+          <label><input type="checkbox" name="event-filter" value="nfp" checked /> Non-Farm Payrolls (NFP)</label>
+          <label><input type="checkbox" name="event-filter" value="cpi" checked /> CPI inflation</label>
+          <label><input type="checkbox" name="event-filter" value="ppi" checked /> PPI inflation</label>
+          <label><input type="checkbox" name="event-filter" value="fomc" checked /> FOMC / Fed decisions</label>
+        </fieldset>
         <div class="table-wrap">
           <table>
             <thead>
@@ -59,6 +66,17 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
   const rows = document.querySelector("#calendar-rows");
   const status = document.querySelector("#calendar-status");
   const refreshButton = document.querySelector("#refresh-calendar");
+  const filterInputs = [...document.querySelectorAll('input[name="event-filter"]')];
+  let calendarEvents = [];
+
+  function eventCategory(event) {
+    const name = String(event.event || "").toLowerCase();
+    if (/non.?farm payroll|employment situation|jobs report/.test(name)) return "nfp";
+    if (/consumer price index|\bcpi\b/.test(name)) return "cpi";
+    if (/producer price index|\bppi\b/.test(name)) return "ppi";
+    if (/fomc|federal reserve|federal funds rate|fed rate decision|fed interest rate/.test(name)) return "fomc";
+    return "other";
+  }
 
   function parseProviderDate(value) {
     if (!value) return null;
@@ -95,18 +113,22 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
 
   function renderEvents(events) {
     rows.replaceChildren();
-    if (!events || events.length === 0) {
+    const selectedCategories = new Set(filterInputs.filter((input) => input.checked).map((input) => input.value));
+    const visibleEvents = (events || []).filter((event) => selectedCategories.has(eventCategory(event)));
+    if (visibleEvents.length === 0) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 5;
       td.className = "state";
-      td.textContent = "No matching NFP, CPI, PPI, or Federal Reserve events were returned for this period.";
+      td.textContent = selectedCategories.size === 0
+        ? "Choose at least one event type above to display calendar releases."
+        : "No events match your selected filters for this period.";
       tr.append(td);
       rows.append(tr);
       return;
     }
 
-    for (const event of events) {
+    for (const event of visibleEvents) {
       const tr = document.createElement("tr");
       tr.append(
         makeCell(formatDate(event.date), "date-cell"),
@@ -133,7 +155,8 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
         }
         return;
       }
-      renderEvents(data.events);
+      calendarEvents = Array.isArray(data.events) ? data.events : [];
+      renderEvents(calendarEvents);
       const updated = data.updatedAt ? new Date(data.updatedAt) : new Date();
       status.textContent = "Data updated " + new Intl.DateTimeFormat("en-ZA", {
         timeZone: "Africa/Johannesburg",
@@ -148,6 +171,7 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
     }
   }
 
+  filterInputs.forEach((input) => input.addEventListener("change", () => renderEvents(calendarEvents)));
   refreshButton.addEventListener("click", loadCalendar);
   loadCalendar();
 </script>
@@ -170,6 +194,10 @@ const intro = "Currencies, financial markets, and South Africa's economy.";
   button { flex: 0 0 auto; padding: 11px 15px; border: 0; border-radius: 9px; background: #176b45; color: #fff; font-weight: 800; cursor: pointer; }
   button:disabled { opacity: .6; cursor: wait; }
   .timezone { margin: 20px 0 12px; }
+  .event-filters { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 16px 0; padding: 14px 16px; border: 1px solid #dfe5ee; border-radius: 10px; }
+  .event-filters legend { padding: 0 6px; color: #172238; font-size: 13px; font-weight: 800; }
+  .event-filters label { display: inline-flex; align-items: center; gap: 7px; color: #354258; font-size: 13px; cursor: pointer; }
+  .event-filters input { width: 16px; height: 16px; accent-color: #176b45; }
   .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
   table { width: 100%; min-width: 680px; border-collapse: collapse; text-align: left; font-size: 13px; }
   th { padding: 13px 12px; background: #101a2d; color: #fff; font-size: 12px; white-space: nowrap; }
