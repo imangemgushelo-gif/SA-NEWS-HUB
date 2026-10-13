@@ -1,35 +1,147 @@
 ---
 import { news } from "../src/data/news.js";
 
-const { category } = Astro.props;
+const { category, filterMode = "none" } = Astro.props;
 const stories = news
   .filter((story) => story.category === category)
   .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+const filterCategories = filterMode === "sport"
+  ? ["Football", "Rugby", "Cricket", "Tennis", "Basketball", "Athletics", "Other Sports"]
+  : filterMode === "world"
+    ? ["Politics", "Business", "Conflicts & Security", "Science & Technology", "Environment", "Health", "Other World News"]
+    : [];
+
+function classifyStory(story) {
+  const content = `${story.title} ${story.summary} ${story.publisher}`.toLowerCase();
+
+  if (filterMode === "sport") {
+    if (/football|soccer|premier league|champions league|fifa|goalkeeper/.test(content)) return "Football";
+    if (/rugby|springboks|currie cup|six nations/.test(content)) return "Rugby";
+    if (/cricket|proteas|test match|t20|odi|wicket/.test(content)) return "Cricket";
+    if (/tennis|wimbledon|us open|french open|australian open/.test(content)) return "Tennis";
+    if (/basketball|nba|wnba/.test(content)) return "Basketball";
+    if (/athletics|marathon|track and field|olympics|sprinter/.test(content)) return "Athletics";
+    return "Other Sports";
+  }
+
+  if (filterMode === "world") {
+    if (/politic|election|president|parliament|government|diplomacy|minister/.test(content)) return "Politics";
+    if (/business|economy|economic|trade|market|company|companies|tariff|inflation/.test(content)) return "Business";
+    if (/war|conflict|military|attack|security|ceasefire|missile|troops/.test(content)) return "Conflicts & Security";
+    if (/science|technology|artificial intelligence|\bai\b|research|space|cyber/.test(content)) return "Science & Technology";
+    if (/climate|environment|wildlife|pollution|renewable|conservation|flood|wildfire/.test(content)) return "Environment";
+    if (/health|hospital|disease|virus|vaccine|medical|public health/.test(content)) return "Health";
+    return "Other World News";
+  }
+
+  return "Other";
+}
 ---
 
 <section class="published-news" aria-label={category + " published news"}>
-  {stories.length ? (
-    <div class="story-grid">
-      {stories.map((story) => (
-        <article class="story-card">
-          <p class="category">{story.category}</p>
-          <h2><a href={"/news/" + story.slug + "/"}>{story.title}</a></h2>
-          <p class="summary">{story.summary}</p>
-          <p class="source">
-            Source: <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer">{story.publisher}</a>
-          </p>
-          <a class="read-more" href={"/news/" + story.slug + "/"}>Read story →</a>
-        </article>
-      ))}
+  {filterCategories.length > 0 && (
+    <div class="news-tools" data-news-filter-panel>
+      <div class="search-row">
+        <label for={category.toLowerCase() + "-news-search"}>Search {category.toLowerCase()} news</label>
+        <input
+          id={category.toLowerCase() + "-news-search"}
+          type="search"
+          placeholder={filterMode === "sport" ? "Search teams, players, competitions, or keywords…" : "Search countries, topics, people, or keywords…"}
+          data-news-search
+        />
+      </div>
+      <fieldset class="filter-options">
+        <legend>Choose news types</legend>
+        <div class="filter-list">
+          {filterCategories.map((filterCategory) => (
+            <label class="filter-option">
+              <input type="checkbox" data-news-filter value={filterCategory} checked />
+              <span>{filterCategory}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p class="filter-help">All types are selected by default. Uncheck any type to narrow the results.</p>
     </div>
-  ) : (
-    <p class="empty">No stories have been approved for publication in this category yet.</p>
   )}
+
+  <div class="story-grid">
+    {stories.map((story) => (
+      <article
+        class="story-card"
+        data-news-card
+        data-filter-category={classifyStory(story)}
+        data-search={`${story.title} ${story.summary} ${story.publisher} ${story.category}`.toLowerCase()}
+      >
+        <p class="category">{story.category}{filterMode !== "none" ? " · " + classifyStory(story) : ""}</p>
+        <h2><a href={"/news/" + story.slug + "/"}>{story.title}</a></h2>
+        <p class="summary">{story.summary}</p>
+        <p class="source">
+          Source: <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer">{story.publisher}</a>
+        </p>
+        <a class="read-more" href={"/news/" + story.slug + "/"}>Read story →</a>
+      </article>
+    ))}
+  </div>
+
+  <p class="empty" data-filter-empty>
+    {stories.length ? "No stories match your selected filters or search." : "No stories have been approved for publication in this category yet."}
+  </p>
 </section>
 
+<script>
+  document.querySelectorAll("[data-news-filter-panel]").forEach((panel) => {
+    const section = panel.closest(".published-news");
+    const searchInput = panel.querySelector("[data-news-search]");
+    const filters = Array.from(panel.querySelectorAll("[data-news-filter]"));
+    const cards = Array.from(section.querySelectorAll("[data-news-card]"));
+    const emptyState = section.querySelector("[data-filter-empty]");
+
+    const applyFilters = () => {
+      const selected = new Set(filters.filter((filter) => filter.checked).map((filter) => filter.value));
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const categoryMatches = selected.has(card.dataset.filterCategory);
+        const searchMatches = !query || card.dataset.search.includes(query);
+        const visible = categoryMatches && searchMatches;
+        card.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+
+      emptyState.hidden = visibleCount > 0;
+      if (selected.size === 0) {
+        emptyState.textContent = "Choose at least one news type above to display stories.";
+      } else if (query) {
+        emptyState.textContent = "No stories match your selected filters or search. Try another keyword or news type.";
+      } else {
+        emptyState.textContent = "No stories have been approved for publication in this category yet.";
+      }
+    };
+
+    filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+    searchInput.addEventListener("input", applyFilters);
+    applyFilters();
+  });
+</script>
+
 <style>
+  .news-tools { margin-top: 28px; padding: 22px; border: 1px solid #e1e6ef; border-radius: 10px; background: #fff; }
+  .search-row { display: grid; gap: 8px; }
+  .search-row label, .filter-options legend { color: #172238; font-size: 14px; font-weight: 800; }
+  .search-row input { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #cbd4e1; border-radius: 7px; color: #172238; background: #fff; font: inherit; }
+  .search-row input:focus-visible, .filter-option input:focus-visible { outline: 3px solid #8bb9a0; outline-offset: 2px; }
+  .filter-options { margin: 20px 0 0; padding: 0; border: 0; }
+  .filter-options legend { margin-bottom: 12px; }
+  .filter-list { display: flex; flex-wrap: wrap; gap: 9px; }
+  .filter-option { display: inline-flex; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid #d8e0ea; border-radius: 999px; background: #f7f9fc; color: #26354c; font-size: 13px; cursor: pointer; }
+  .filter-option input { accent-color: #176b45; margin: 0; }
+  .filter-help { margin: 13px 0 0; color: #59677b; font-size: 12px; line-height: 1.6; }
   .story-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-top: 28px; }
   .story-card { padding: 22px; border: 1px solid #e1e6ef; border-radius: 8px; background: #fff; }
+  .story-card[hidden] { display: none; }
   .category { margin: 0 0 10px; color: #176b45; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
   h2 { margin: 0 0 12px; font-size: 21px; line-height: 1.35; }
   h2 a { color: #172238; text-decoration: none; }
@@ -38,4 +150,6 @@ const stories = news
   .source a { color: #176b45; }
   .read-more { display: inline-block; margin-top: 8px; color: #176b45; font-size: 12px; font-weight: 800; text-decoration: none; }
   .empty { margin-top: 28px; padding: 20px; border-radius: 8px; background: #f0f3f8; color: #59677b; line-height: 1.7; }
+  .empty[hidden] { display: none; }
+  @media (max-width: 520px) { .news-tools { padding: 16px; } .filter-list { gap: 7px; } .filter-option { font-size: 12px; } }
 </style>
