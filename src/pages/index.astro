@@ -72,6 +72,8 @@ const sections = [
           {sections.map((section) => (
             <a href={section.url}>{section.name}</a>
           ))}
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
         </nav>
       </div>
     </header>
@@ -153,6 +155,11 @@ const sections = [
     <footer class="site-footer">
       <a class="footer-brand" href="/">SA NEWS <span>HUB.</span></a>
       <p>Independent news project · © 2026 SA News Hub</p>
+      <div class="footer-links">
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/privacy-policy/">Privacy Policy</a>
+      </div>
       <a class="footer-top" href="#">Back to top ↑</a>
     </footer>
   </body>
@@ -534,6 +541,22 @@ const sections = [
     color: #aebbd0;
     font-size: 10px;
     line-height: 1.6;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .footer-links a {
+    color: #dce4f0;
+    font-size: 11px;
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    color: #ffc66d;
   }
 
   .footer-top {
