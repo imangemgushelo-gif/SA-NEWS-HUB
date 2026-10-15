@@ -1,0 +1,54 @@
+---
+const sections = [
+  { name: "South Africa", url: "/south-africa/" },
+  { name: "World", url: "/world/" },
+  { name: "Politics", url: "/politics/" },
+  { name: "Markets & Forex", url: "/markets-forex/" },
+  { name: "Sport", url: "/sport/" },
+  { name: "Technology", url: "/technology/" },
+  { name: "Jobs", url: "/jobs/" },
+  { name: "Weather", url: "/weather/" },
+  { name: "Economic Calendar", url: "/economic-calendar/" },
+];
+---
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Politics | SA News Hub</title></head>
+<body style="font-family:Arial; margin:0; background:#f3f5f9;">
+  <header style="background:#101a2d; color:#fff; padding:20px;">
+    <a href="/" style="color:#fff; font-size:22px; font-weight:900; text-decoration:none;">SA NEWS HUB.</a>
+    <nav style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;">
+      {sections.map((s) => (<a href={s.url} style="color:#dce4f0; font-size:12px; text-decoration:none;">{s.name}</a>))}
+    </nav>
+  </header>
+  <main style="max-width:900px; margin:0 auto; padding:24px;">
+    <h1>Politics</h1>
+    <p>If you can see this, the file is working.</p>
+    <input id="polSearch" type="text" placeholder="Search politics, e.g. Parliament, Election..." style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;" />
+    <select id="polFilter" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin-top:10px;">
+      <option value="">All Topics</option>
+      <option value="Elections">Elections</option>
+      <option value="Parliament">Parliament</option>
+      <option value="Government">Government</option>
+      <option value="Policy">Policy</option>
+    </select>
+    <div id="polList" style="margin-top:16px;"></div>
+  </main>
+  <script>
+    const articles = [
+      { title: "Parliament debates new budget priorities", topic: "Parliament", excerpt: "MPs clash over spending, service delivery and growth." },
+      { title: "IEC confirms voter registration weekend dates", topic: "Elections", excerpt: "Check where to register and what ID to bring." },
+      { title: "Cabinet announces new infrastructure plan", topic: "Government", excerpt: "Roads, water and energy projects get priority funding." },
+      { title: "New policy aims to cut red tape for small business", topic: "Policy", excerpt: "Government says licences will be faster and cheaper." },
+    ];
+    function render(){
+      const q = (document.getElementById("polSearch").value || "").toLowerCase();
+      const f = document.getElementById("polFilter").value || "";
+      const filtered = articles.filter(a => (a.title + " " + a.excerpt).toLowerCase().includes(q) && (!f || a.topic === f));
+      document.getElementById("polList").innerHTML = filtered.map(a => `<div style="background:#fff; padding:16px; border-radius:8px; margin-bottom:10px;"><span style="background:#f0f3f8; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:800;">${a.topic}</span><h3 style="margin:10px 0 6px;">${a.title}</h3><p style="color:#555; font-size:13px; margin:0;">${a.excerpt}</p></div>`).join("") || "<p>No stories found.</p>";
+    }
+    document.getElementById("polSearch").addEventListener("input", render);
+    document.getElementById("polFilter").addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>
