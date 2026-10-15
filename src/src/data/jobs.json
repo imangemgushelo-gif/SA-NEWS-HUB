@@ -1,33 +1,6 @@
-{
-  "updated": "2026-10-15T20:24:47.641Z",
-  "count": 3,
-  "jobs": [
-    {
-      "title": "DPSA Vacancy Circular - National & Provincial Government Jobs",
-      "company": "DPSA",
-      "location": "Nationwide",
-      "province": "Nationwide",
-      "type": "Permanent",
-      "link": "https://www.dpsa.gov.za/newsroom/psvc/",
-      "source": "DPSA Official"
-    },
-    {
-      "title": "SAPS Careers - Police Trainees & Vacancies",
-      "company": "SAPS",
-      "location": "Nationwide",
-      "province": "Nationwide",
-      "type": "Learnership",
-      "link": "https://www.saps.gov.za/careers/careers.php",
-      "source": "SAPS Official"
-    },
-    {
-      "title": "SANDF Careers - Defence Force Recruitment",
-      "company": "SANDF",
-      "location": "Nationwide",
-      "province": "Nationwide",
-      "type": "Permanent",
-      "link": "https://www.dod.mil.za/",
-      "source": "SANDF Official"
-    }
-  ]
-}
+[
+  { "title": "SAPS Police Trainees - 5,500 Posts", "company": "SAPS", "location": "Nationwide", "province": "Nationwide", "closing": "30 Nov 2026" },
+  { "title": "Cashiers - Checkers", "company": "Shoprite Group", "location": "Gqeberha", "province": "Eastern Cape", "closing": "15 Nov 2026" },
+  { "title": "Transnet Apprenticeship", "company": "Transnet", "location": "Durban", "province": "KwaZulu-Natal", "closing": "20 Nov 2026" },
+  { "title": "Data Capturer - City of Cape Town", "company": "City of Cape Town", "location": "Cape Town", "province": "Western Cape", "closing": "12 Nov 2026" }
+]
