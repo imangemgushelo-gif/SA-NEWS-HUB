@@ -1,0 +1,83 @@
+---
+const sections = [
+  { name: "South Africa", url: "/south-africa/" },
+  { name: "World", url: "/world/" },
+  { name: "Politics", url: "/politics/" },
+  { name: "Markets & Forex", url: "/markets-forex/" },
+  { name: "Sport", url: "/sport/" },
+  { name: "Technology", url: "/technology/" },
+  { name: "Jobs", url: "/jobs/" },
+  { name: "Weather", url: "/weather/" },
+  { name: "Economic Calendar", url: "/economic-calendar/" },
+];
+---
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Weather | SA News Hub</title></head>
+<body style="font-family:Arial; margin:0; background:#f3f5f9;">
+  <header style="background:#101a2d; color:#fff; padding:20px;">
+    <a href="/" style="color:#fff; font-size:22px; font-weight:900; text-decoration:none;">SA NEWS HUB.</a>
+    <nav style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;">
+      {sections.map((s) => (<a href={s.url} style="color:#dce4f0; font-size:12px; text-decoration:none;">{s.name}</a>))}
+    </nav>
+  </header>
+  <main style="max-width:900px; margin:0 auto; padding:24px;">
+    <h1>Weather for SA</h1>
+    <p>If you can see this, the file is working. Search any SA town.</p>
+    <div style="display:flex; gap:10px;">
+      <input id="citySearch" type="text" placeholder="Search town, e.g. Gqeberha, Soweto..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #ccc;" />
+      <button id="searchBtn" style="padding:12px 18px; border-radius:8px; background:#101a2d; color:#fff; font-weight:800;">Search</button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0;">
+      <button class="quickCity" data-city="Johannesburg" style="padding:8px 12px; border-radius:20px; border:1px solid #ccc; background:#fff;">Johannesburg</button>
+      <button class="quickCity" data-city="Cape Town" style="padding:8px 12px; border-radius:20px; border:1px solid #ccc; background:#fff;">Cape Town</button>
+      <button class="quickCity" data-city="Durban" style="padding:8px 12px; border-radius:20px; border:1px solid #ccc; background:#fff;">Durban</button>
+      <button class="quickCity" data-city="Gqeberha" style="padding:8px 12px; border-radius:20px; border:1px solid #ccc; background:#fff;">Gqeberha</button>
+    </div>
+    <div id="weatherResult" style="background:#fff; padding:20px; border-radius:12px;">Loading Johannesburg weather...</div>
+    <h2 style="margin-top:24px;">Major Cities</h2>
+    <div id="allCities" style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;"></div>
+  </main>
+  <script>
+    const cities = [
+      { name: "Johannesburg", lat: -26.2041, lon: 28.0473 },
+      { name: "Cape Town", lat: -33.9249, lon: 18.4241 },
+      { name: "Durban", lat: -29.8587, lon: 31.0218 },
+      { name: "Pretoria", lat: -25.7479, lon: 28.2293 },
+      { name: "Gqeberha", lat: -33.9608, lon: 25.6022 },
+      { name: "Bloemfontein", lat: -29.0852, lon: 26.1542 },
+    ];
+    function wText(code){ if(code===0) return "Clear Sky ☀️"; if(code<=3) return "Partly Cloudy ⛅"; if(code<=48) return "Foggy 🌫️"; if(code<=67) return "Rain 🌧️"; if(code<=82) return "Showers 🌦️"; return "Thunderstorm ⛈️"; }
+    async function loadWeather(name, lat, lon){
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&timezone=Africa/Johannesburg`);
+      const d = await res.json();
+      document.getElementById("weatherResult").innerHTML = `<h2 style="margin:0;">${name}</h2><p style="font-size:42px; margin:10px 0;">${Math.round(d.current.temperature_2m)}°C</p><p>${wText(d.current.weather_code)}</p><p>Wind: ${d.current.wind_speed_10m} km/h | Humidity: ${d.current.relative_humidity_2m}%</p>`;
+    }
+    async function searchCity(val){
+      if(!val) return;
+      const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=1&countryCode=ZA&language=en&format=json`);
+      const g = await geo.json();
+      if(g.results && g.results.length > 0){ const r = g.results[0]; loadWeather(r.name, r.latitude, r.longitude); }
+      else { document.getElementById("weatherResult").innerHTML = "Town not found. Try another spelling."; }
+    }
+    async function loadAll(){
+      for(const c of cities){
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code&timezone=Africa/Johannesburg`);
+        const d = await res.json();
+        const div = document.createElement("div");
+        div.style.cssText = "background:#fff; padding:14px; border-radius:12px; cursor:pointer;";
+        div.innerHTML = `<strong>${c.name}</strong><br>${Math.round(d.current.temperature_2m)}°C<br>${wText(d.current.weather_code)}`;
+        div.onclick = () => loadWeather(c.name, c.lat, c.lon);
+        document.getElementById("allCities").appendChild(div);
+      }
+    }
+    document.getElementById("searchBtn").addEventListener("click", () => searchCity(document.getElementById("citySearch").value));
+    document.getElementById("citySearch").addEventListener("keydown", e => { if(e.key === "Enter") searchCity(e.target.value); });
+    document.querySelectorAll(".quickCity").forEach(b => b.addEventListener("click", () => {
+      const c = cities.find(x => x.name === b.dataset.city);
+      if(c) loadWeather(c.name, c.lat, c.lon);
+    }));
+    loadWeather("Johannesburg", -26.2041, 28.0473);
+    loadAll();
+  </script>
+</body>
+</html>
