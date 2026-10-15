@@ -1,12 +1,4 @@
 ---
-const jobs = [
-  { title: "SAPS Police Trainees - 5,500 Posts", company: "SAPS", location: "Nationwide", province: "Nationwide", closing: "30 Nov 2026" },
-  { title: "Cashiers - Checkers", company: "Shoprite Group", location: "Gqeberha", province: "Eastern Cape", closing: "15 Nov 2026" },
-  { title: "Transnet Apprenticeship", company: "Transnet", location: "Durban", province: "KwaZulu-Natal", closing: "20 Nov 2026" },
-  { title: "Data Capturer - City of Cape Town", company: "City of Cape Town", location: "Cape Town", province: "Western Cape", closing: "12 Nov 2026" },
-  { title: "General Worker - Transnet Port Terminals", company: "Transnet", location: "Port Elizabeth", province: "Eastern Cape", closing: "18 Nov 2026" },
-  { title: "Nursing Posts - Dept of Health", company: "Dept of Health", location: "Johannesburg", province: "Gauteng", closing: "25 Nov 2026" },
-];
 ---
 
 <html lang="en">
@@ -14,7 +6,6 @@ const jobs = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jobs in South Africa | SA News Hub</title>
-  <meta name="description" content="Find jobs in South Africa. SAPS, Transnet, Shoprite, government and private jobs." />
 </head>
 <body>
   <header class="site-header">
@@ -33,33 +24,27 @@ const jobs = [
 
   <main>
     <p class="eyebrow">OPPORTUNITIES</p>
-    <h1>Jobs in South Africa</h1>
-    <p class="sub">Where companies and government are hiring right now.</p>
+    <h1>Live Jobs in South Africa</h1>
+    <p class="sub">Real jobs pulled live from Adzuna. Click Apply to go directly to the official job listing. We never charge to apply.</p>
 
     <div class="filter-box">
-      <input id="jobSearch" type="text" placeholder="Search jobs, e.g. SAPS, Durban, Cashier..." />
+      <input id="jobSearch" type="text" placeholder="Search jobs, e.g. Cashier, Durban, Driver..." />
       <select id="jobLocation">
-        <option value="">All Locations</option>
-        <option value="Gauteng">Gauteng</option>
-        <option value="Western Cape">Western Cape</option>
-        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-        <option value="Eastern Cape">Eastern Cape</option>
-        <option value="Nationwide">Nationwide</option>
+        <option value="">All South Africa</option>
+        <option value="Johannesburg">Johannesburg</option>
+        <option value="Cape Town">Cape Town</option>
+        <option value="Durban">Durban</option>
+        <option value="Pretoria">Pretoria</option>
+        <option value="Gqeberha">Gqeberha</option>
+        <option value="East London">East London</option>
       </select>
+      <button id="searchBtn" class="search-btn">Search Live Jobs</button>
     </div>
 
-    <div id="jobList" class="job-grid">
-      {jobs.map((job) => (
-        <article class="job-card" data-title={(job.title + " " + job.company + " " + job.location).toLowerCase()} data-province={job.province}>
-          <span class="pill">{job.province}</span>
-          <h3>{job.title}</h3>
-          <p><strong>{job.company}</strong> - {job.location}</p>
-          <small>Closing: {job.closing}</small>
-          <a class="apply" href="/contact/">View & Apply →</a>
-        </article>
-      ))}
-    </div>
-    <p id="noJobs" style="display:none;">No jobs found. Try another town or keyword.</p>
+    <p id="jobStatus">Loading live jobs...</p>
+    <div id="jobList" class="job-grid"></div>
+    <p id="noJobs" style="display:none;">No jobs found. Try another keyword.</p>
+    <p class="credit">Jobs powered by <a href="https://www.adzuna.co.za" target="_blank" rel="noopener">Adzuna</a></p>
   </main>
 
   <footer class="site-footer">
@@ -68,25 +53,54 @@ const jobs = [
   </footer>
 
   <script>
-    const search = document.getElementById("jobSearch");
-    const loc = document.getElementById("jobLocation");
-    const cards = document.querySelectorAll(".job-card");
+    const APP_ID = "897de7b4";
+    const APP_KEY = "8625a7661b6f67374d01e3fedb62fefb";
+
+    const list = document.getElementById("jobList");
+    const status = document.getElementById("jobStatus");
     const noEl = document.getElementById("noJobs");
-    function filter(){
-      const q = (search.value || "").toLowerCase();
-      const l = loc.value || "";
-      let shown = 0;
-      cards.forEach(c => {
-        const okQ = c.dataset.title.includes(q);
-        const okL = !l || c.dataset.province === l || c.dataset.province === "Nationwide";
-        const show = okQ && okL;
-        c.style.display = show ? "block" : "none";
-        if(show) shown++;
-      });
-      noEl.style.display = shown === 0 ? "block" : "none";
+
+    async function loadJobs() {
+      const q = document.getElementById("jobSearch").value || "";
+      const loc = document.getElementById("jobLocation").value || "";
+      status.textContent = "Loading live jobs...";
+      list.innerHTML = "";
+      noEl.style.display = "none";
+
+      const url = `https://api.adzuna.com/v1/api/jobs/za/search/1?app_id=${APP_ID}&app_key=${APP_KEY}&results_per_page=30&what=${encodeURIComponent(q)}&where=${encodeURIComponent(loc)}&sort_by=date`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+          status.textContent = "";
+          noEl.style.display = "block";
+          return;
+        }
+
+        status.textContent = `Showing ${data.results.length} live jobs - updated just now`;
+        list.innerHTML = data.results.map(j => `
+          <article class="job-card">
+            <span class="pill">${j.location?.display_name || "South Africa"}</span>
+            <h3>${j.title}</h3>
+            <p><strong>${j.company?.display_name || "Company"}</strong></p>
+            <small>${j.created ? new Date(j.created).toLocaleDateString("en-ZA") : ""} • ${j.category?.label || ""}</small>
+            <p class="desc">${(j.description || "").slice(0, 140)}...</p>
+            <a class="apply" href="${j.redirect_url}" target="_blank" rel="noopener">Apply on Official Site →</a>
+          </article>
+        `).join("");
+
+      } catch (e) {
+        status.textContent = "Could not load live jobs right now. Please try again in a minute.";
+      }
     }
-    search.addEventListener("input", filter);
-    loc.addEventListener("change", filter);
+
+    document.getElementById("searchBtn").addEventListener("click", loadJobs);
+    document.getElementById("jobSearch").addEventListener("keydown", e => { if(e.key === "Enter") loadJobs(); });
+    document.getElementById("jobLocation").addEventListener("change", loadJobs);
+
+    loadJobs();
   </script>
 </body>
 </html>
@@ -107,13 +121,16 @@ const jobs = [
   .sub { color: #5a6a80; }
   .filter-box { display: flex; gap: 10px; flex-wrap: wrap; margin: 22px 0; }
   .filter-box input, .filter-box select { flex: 1; min-width: 200px; padding: 13px 14px; border: 1px solid #d8dee9; border-radius: 8px; font-size: 14px; background: #fff; }
+  .search-btn { background: #101a2d; color: #fff; border: none; padding: 13px 22px; border-radius: 8px; font-weight: 800; cursor: pointer; }
   .job-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .job-card { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 20px; }
   .job-card h3 { margin: 10px 0 8px; font-size: 18px; line-height: 1.3; }
   .job-card p { margin: 0 0 6px; font-size: 14px; }
   .job-card small { color: #5a6a80; }
+  .desc { color: #5a6a80; font-size: 13px; line-height: 1.5; margin-top: 8px !important; }
   .pill { background: #fff3d6; color: #a66a13; padding: 5px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
   .apply { display: block; margin-top: 12px; color: #176447; font-weight: 800; text-decoration: none; }
+  .credit { margin-top: 20px; font-size: 12px; color: #5a6a80; }
   .site-footer { background: #101a2d; color: #aebbd0; padding: 32px 24px; text-align: center; }
   @media (max-width: 850px) { .job-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 520px) { .job-grid { grid-template-columns: 1fr; } main { padding: 20px 16px 40px; } }
