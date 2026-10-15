@@ -1,55 +1,120 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import jobsData from "../data/jobs.json";
-
-const allJobs = jobsData.jobs || [];
-const provinces = ["All", "Nationwide", "Gauteng", "Western Cape", "KwaZulu-Natal", "Eastern Cape", "Limpopo", "Mpumalanga", "North West", "Free State", "Northern Cape"];
-const updatedDate = new Date(jobsData.updated).toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg" });
+const jobs = [
+  { title: "SAPS Police Trainees - 5,500 Posts", company: "SAPS", location: "Nationwide", province: "Nationwide", closing: "30 Nov 2026" },
+  { title: "Cashiers - Checkers", company: "Shoprite Group", location: "Gqeberha", province: "Eastern Cape", closing: "15 Nov 2026" },
+  { title: "Transnet Apprenticeship", company: "Transnet", location: "Durban", province: "KwaZulu-Natal", closing: "20 Nov 2026" },
+  { title: "Data Capturer - City of Cape Town", company: "City of Cape Town", location: "Cape Town", province: "Western Cape", closing: "12 Nov 2026" },
+  { title: "General Worker - Transnet Port Terminals", company: "Transnet", location: "Port Elizabeth", province: "Eastern Cape", closing: "18 Nov 2026" },
+  { title: "Nursing Posts - Dept of Health", company: "Dept of Health", location: "Johannesburg", province: "Gauteng", closing: "25 Nov 2026" },
+];
 ---
 
-<Layout title="Jobs in South Africa - SA News Hub">
-  <main class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-2">Jobs in South Africa</h1>
-    <p class="text-gray-600 mb-1">✅ {allJobs.length} verified jobs • Updated: {updatedDate} • Auto-updated daily at 06:00</p>
-    <p class="text-sm text-green-700 bg-green-50 p-3 rounded mb-6">⚠️ Never pay to apply for a job. If anyone asks for money on WhatsApp/Telegram, it's a scam.</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jobs in South Africa | SA News Hub</title>
+  <meta name="description" content="Find jobs in South Africa. SAPS, Transnet, Shoprite, government and private jobs." />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">SA NEWS <span>HUB.</span></a>
+      <p class="tagline">NEWS THAT MATTERS. MARKETS THAT MOVE.</p>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/south-africa/">South Africa</a>
+        <a href="/jobs/">Jobs</a>
+        <a href="/weather/">Weather</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-    <div class="flex flex-wrap gap-2 mb-6" id="filters">
-      {provinces.map(p => (
-        <button data-filter={p} class="filter-btn px-4 py-2 rounded-full border text-sm hover:bg-black hover:text-white">{p}</button>
-      ))}
+  <main>
+    <p class="eyebrow">OPPORTUNITIES</p>
+    <h1>Jobs in South Africa</h1>
+    <p class="sub">Where companies and government are hiring right now.</p>
+
+    <div class="filter-box">
+      <input id="jobSearch" type="text" placeholder="Search jobs, e.g. SAPS, Durban, Cashier..." />
+      <select id="jobLocation">
+        <option value="">All Locations</option>
+        <option value="Gauteng">Gauteng</option>
+        <option value="Western Cape">Western Cape</option>
+        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+        <option value="Eastern Cape">Eastern Cape</option>
+        <option value="Nationwide">Nationwide</option>
+      </select>
     </div>
 
-    <div id="jobs-list" class="grid gap-4">
-      {allJobs.map(job => (
-        <article class="job-card border rounded-xl p-5 bg-white shadow-sm" data-province={job.province}>
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class="text-lg font-bold">{job.title}</h2>
-              <p class="text-gray-600">{job.company} • {job.location} • {job.type}</p>
-              <span class="inline-block text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mt-2">{job.province} • {job.category}</span>
-              <span class="inline-block text-xs bg-gray-100 px-2 py-1 rounded mt-2 ml-1">{job.source}</span>
-            </div>
-            <a href={job.link} target="_blank" rel="noopener" class="bg-black text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap ml-4">Apply →</a>
-          </div>
-          {job.description && <p class="text-sm text-gray-700 mt-3">{job.description}</p>}
+    <div id="jobList" class="job-grid">
+      {jobs.map((job) => (
+        <article class="job-card" data-title={(job.title + " " + job.company + " " + job.location).toLowerCase()} data-province={job.province}>
+          <span class="pill">{job.province}</span>
+          <h3>{job.title}</h3>
+          <p><strong>{job.company}</strong> - {job.location}</p>
+          <small>Closing: {job.closing}</small>
+          <a class="apply" href="/contact/">View & Apply →</a>
         </article>
       ))}
     </div>
+    <p id="noJobs" style="display:none;">No jobs found. Try another town or keyword.</p>
   </main>
 
+  <footer class="site-footer">
+    <a class="footer-brand" href="/">SA NEWS <span>HUB.</span></a>
+    <p>Independent news project · © 2026 SA News Hub</p>
+  </footer>
+
   <script>
-    const btns = document.querySelectorAll('.filter-btn');
-    const cards = document.querySelectorAll('.job-card');
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const f = btn.getAttribute('data-filter');
-        btns.forEach(b => b.classList.remove('bg-black','text-white'));
-        btn.classList.add('bg-black','text-white');
-        cards.forEach(c => {
-          const prov = c.getAttribute('data-province');
-          c.style.display = (f === 'All' || prov === f) ? 'block' : 'none';
-        });
+    const search = document.getElementById("jobSearch");
+    const loc = document.getElementById("jobLocation");
+    const cards = document.querySelectorAll(".job-card");
+    const noEl = document.getElementById("noJobs");
+    function filter(){
+      const q = (search.value || "").toLowerCase();
+      const l = loc.value || "";
+      let shown = 0;
+      cards.forEach(c => {
+        const okQ = c.dataset.title.includes(q);
+        const okL = !l || c.dataset.province === l || c.dataset.province === "Nationwide";
+        const show = okQ && okL;
+        c.style.display = show ? "block" : "none";
+        if(show) shown++;
       });
-    });
+      noEl.style.display = shown === 0 ? "block" : "none";
+    }
+    search.addEventListener("input", filter);
+    loc.addEventListener("change", filter);
   </script>
-</Layout>
+</body>
+</html>
+
+<style>
+    * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f5f9; color: #172238; font-family: Arial, Helvetica, sans-serif; }
+  .site-header { background: #101a2d; color: #fff; }
+  .header-inner { max-width: 1160px; margin: 0 auto; padding: 24px 24px 0; }
+  .brand, .footer-brand { color: #fff; font-size: 25px; font-weight: 900; letter-spacing: 1px; text-decoration: none; }
+  .brand span, .footer-brand span { color: #ffc66d; }
+  .tagline { margin: 8px 0 23px; color: #aebbd0; font-size: 10px; letter-spacing: 2px; }
+  nav { display: flex; flex-wrap: wrap; gap: 0 23px; border-top: 1px solid #ffffff20; }
+  nav a { padding: 16px 0; color: #dce4f0; font-size: 12px; text-decoration: none; }
+  main { max-width: 1160px; margin: 0 auto; padding: 30px 24px 55px; }
+  .eyebrow { margin: 0 0 10px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+  h1 { margin: 0; font-size: 34px; letter-spacing: -1px; }
+  .sub { color: #5a6a80; }
+  .filter-box { display: flex; gap: 10px; flex-wrap: wrap; margin: 22px 0; }
+  .filter-box input, .filter-box select { flex: 1; min-width: 200px; padding: 13px 14px; border: 1px solid #d8dee9; border-radius: 8px; font-size: 14px; background: #fff; }
+  .job-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .job-card { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 20px; }
+  .job-card h3 { margin: 10px 0 8px; font-size: 18px; line-height: 1.3; }
+  .job-card p { margin: 0 0 6px; font-size: 14px; }
+  .job-card small { color: #5a6a80; }
+  .pill { background: #fff3d6; color: #a66a13; padding: 5px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+  .apply { display: block; margin-top: 12px; color: #176447; font-weight: 800; text-decoration: none; }
+  .site-footer { background: #101a2d; color: #aebbd0; padding: 32px 24px; text-align: center; }
+  @media (max-width: 850px) { .job-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .job-grid { grid-template-columns: 1fr; } main { padding: 20px 16px 40px; } }
+</style>
