@@ -24,6 +24,12 @@ const transporter = nodemailer.createTransport({
 const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
 const aiConfigured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
+// Publishing stays off unless explicitly enabled after quality checks and live-site testing.
+const autoPublishingEnabled = process.env.AUTO_PUBLISH_ENABLED === "true";
+let feedItemsSeen = 0;
+let duplicateItemsSkipped = 0;
+let aiDraftFailures = 0;
+let sourceChecksPassed = 0;
 
 const autoPublished = [];
 const trustedPublishers = {
@@ -188,8 +194,15 @@ async function createAiDraft({ title, summary, category, publisher }) {
     })
   });
 
-  if (!response.ok) throw new Error(`Cloudflare AI returned HTTP ${response.status}`);
+  if (!response.ok) {
+    const errorBody = (await response.text()).replace(/\s+/g, " ").slice(0, 300);
+    throw new Error(`Cloudflare AI returned HTTP ${response.status}: ${errorBody || "no error details returned"}`);
+  }
   const payload = await response.json();
+  if (payload?.success === false) {
+    const details = JSON.stringify(payload.errors || payload.messages || []).slice(0, 300);
+    throw new Error(`Cloudflare AI reported failure: ${details || "no error details returned"}`);
+  }
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string") throw new Error("Cloudflare AI returned no draft text.");
   const jsonText = content.trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/i, "");
@@ -207,11 +220,18 @@ async function createAiDraft({ title, summary, category, publisher }) {
 for (const feed of feeds) {
   try {
     const parsed = await parser.parseURL(feed.url);
-    for (const item of (parsed.items || []).slice(0, 5)) {
+    const feedItems = (parsed.items || []).slice(0, 5);
+    console.log(`Feed loaded (${feed.category}): ${parsed.items?.length || 0} item(s); checking ${feedItems.length}.`);
+    for (const item of feedItems) {
+      feedItemsSeen++;
       const title = cleanText(item.title, 250);
       const url = cleanText(item.link, 1000);
       if (!title || !url || !/^https?:\/\//i.test(url)) continue;
-      if (issueExists(url)) continue;
+      if (issueExists(url)) {
+        duplicateItemsSkipped++;
+        console.log(`Skipped item already present in review queue (${feed.category}): ${title}`);
+        continue;
+      }
 
       const published = item.isoDate || item.pubDate || "Date not supplied by source";
       const feedSummary = cleanText(item.contentSnippet || item.summary || "Open the original source to review the full report.", 450);
@@ -223,6 +243,7 @@ for (const feed of feeds) {
           draft = await createAiDraft({ title, summary: feedSummary, category: feed.category, publisher });
           draftStatus = "AI draft generated from the RSS headline and snippet. It has not been independently fact-checked.";
         } catch (error) {
+          aiDraftFailures++;
           console.error(`AI draft failed for one story (${feed.category}): ${error.message}`);
           draftStatus = "AI draft failed for this item; fill the publication draft manually or reject this story.";
         }
@@ -259,7 +280,7 @@ for (const feed of feeds) {
         }
       }
 
-      const body = [
+      if (draft && !autoPublishingEnabled) {\n        draftStatus = "AI draft generated, but automatic publishing is disabled pending editorial-quality and live-site checks.";\n      }\n\n      const body = [
         "## Pending editorial review",
         "",
         "**Status:** PENDING — this story is not published on SA News Hub.",
