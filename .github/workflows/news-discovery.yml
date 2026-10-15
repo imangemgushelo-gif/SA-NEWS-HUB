@@ -39,4 +39,5 @@ jobs:
           NEWS_APPROVER_EMAIL: ${{ secrets.NEWS_APPROVER_EMAIL }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          AUTO_PUBLISH_ENABLED: "false"
         run: node scripts/discover-news.mjs
