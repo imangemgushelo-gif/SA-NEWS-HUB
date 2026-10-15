@@ -1,5 +1,4 @@
 ---
-import "../styles/page-themes.css";
 const sections = [
   { name: "South Africa", url: "/south-africa/", number: "01", label: "SA NEWS", description: "The stories shaping our nation." },
   { name: "World", url: "/world/", number: "02", label: "GLOBAL", description: "Important developments from around the world." },
@@ -37,7 +36,6 @@ const sections = [
     </header>
 
     <main>
-      <!-- HERO: DESIGN 6 - COMMUNITY / HUMAN -->
       <section class="top-stories design6-hero">
         <div class="d6-hero-wrap">
           <div class="d6-hero-image">
@@ -69,7 +67,6 @@ const sections = [
         </div>
       </section>
 
-      <!-- STATS BAR - DESIGN 6 -->
       <section class="d6-stats" aria-label="Site statistics">
         <div><strong>12k+</strong><span>News Articles</span><small>Published &amp; fact-checked</small></div>
         <div><strong>3500+</strong><span>Jobs Posted</span><small>Across all provinces</small></div>
@@ -77,7 +74,6 @@ const sections = [
         <div><strong>9</strong><span>Provinces Covered</span><small>Nationwide coverage</small></div>
       </section>
 
-      <!-- LATEST NEWS / CATEGORIES -->
       <section class="section-heading" id="sections">
         <div><p class="eyebrow">THE NEWSROOM</p><h2>Latest News</h2></div>
         <p class="section-description">Stay connected to the stories shaping your day. Choose a category below.</p>
@@ -93,7 +89,6 @@ const sections = [
         ))}
       </section>
 
-      <!-- MARKETS & FOREX -->
       <section class="section-heading">
         <div><p class="eyebrow">MONEY</p><h2>Markets & Forex</h2></div>
         <a class="section-link" href="/markets-forex/">View all markets →</a>
@@ -105,7 +100,6 @@ const sections = [
         <div class="mini-card"><strong>Gold</strong><p>Live in Markets section</p><small>Spot price</small></div>
       </section>
 
-      <!-- ECONOMIC CALENDAR -->
       <section class="section-heading">
         <div><p class="eyebrow">ECONOMY</p><h2>Economic Calendar</h2></div>
         <a class="section-link" href="/economic-calendar/">Full calendar →</a>
@@ -116,7 +110,6 @@ const sections = [
         <div class="list-row"><span>Tue, 18 Nov</span><strong>US Fed Minutes</strong><span class="pill">Medium</span></div>
       </section>
 
-      <!-- TECHNOLOGY -->
       <section class="section-heading">
         <div><p class="eyebrow">INNOVATION</p><h2>Technology</h2></div>
         <a class="section-link" href="/technology/">More tech →</a>
@@ -127,7 +120,6 @@ const sections = [
         <a class="news-card" href="/technology/"><div class="card-content"><h3>Load shedding apps get smarter</h3><p>New features help households plan ahead.</p></div><div class="card-footer"><span>Read story</span><span>↗</span></div></a>
       </section>
 
-      <!-- SPORT -->
       <section class="section-heading">
         <div><p class="eyebrow">SPORT</p><h2>Sport</h2></div>
         <a class="section-link" href="/sport/">More sport →</a>
@@ -138,7 +130,6 @@ const sections = [
         <a class="news-card" href="/sport/"><div class="card-content"><h3>PSL: Weekend fixtures and predictions</h3><p>All the big games in one place.</p></div><div class="card-footer"><span>Read story</span><span>↗</span></div></a>
       </section>
 
-      <!-- SA JOBS WITH FILTER -->
       <section class="section-heading">
         <div><p class="eyebrow">OPPORTUNITIES</p><h2>SA Jobs - Who Is Hiring?</h2></div>
         <a class="section-link" href="/jobs/">All jobs →</a>
@@ -157,7 +148,6 @@ const sections = [
       <div id="homeJobList" class="mini-grid"></div>
       <p id="homeNoJobs" style="display:none;">No jobs found. Try another town or keyword.</p>
 
-      <!-- WEATHER WITH SEARCH -->
       <section class="section-heading">
         <div><p class="eyebrow">WEATHER</p><h2>Weather for SA</h2></div>
         <a class="section-link" href="/weather/">Full weather →</a>
@@ -169,7 +159,6 @@ const sections = [
       <div id="homeWeatherResult" class="weather-result">Loading Johannesburg weather...</div>
       <div id="homeWeatherGrid" class="mini-grid" style="margin-top:14px;"></div>
 
-      <!-- TESTIMONIALS - DESIGN 6 -->
       <section class="section-heading">
         <div><p class="eyebrow">COMMUNITY</p><h2>What Our Community Says</h2></div>
       </section>
@@ -270,33 +259,30 @@ const sections = [
 </html>
 
 <style>
-  :global(*) { box-sizing: border-box; }
-  :global(html) { scroll-behavior: smooth; }
-  :global(body) { margin: 0; background: #f3f5f9; color: #172238; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
-  :global(a) { -webkit-tap-highlight-color: transparent; }
- .site-header { background: #101a2d; color: #ffffff; }
- .header-inner { max-width: 1160px; margin: 0 auto; padding: 24px 24px 0; }
- .brand,.footer-brand { display: inline-block; color: #ffffff; font-size: 25px; font-weight: 900; letter-spacing: 1px; text-decoration: none; }
- .brand span,.footer-brand span { color: #ffc66d; }
- .tagline { margin: 8px 0 23px; color: #aebbd0; font-size: 10px; letter-spacing: 2px; line-height: 1.6; }
+    * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #f3f5f9; color: #172238; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { -webkit-tap-highlight-color: transparent; }
+  .site-header { background: #101a2d; color: #fff; }
+  .header-inner { max-width: 1160px; margin: 0 auto; padding: 24px 24px 0; }
+  .brand,.footer-brand { display: inline-block; color: #fff; font-size: 25px; font-weight: 900; letter-spacing: 1px; text-decoration: none; }
+  .brand span,.footer-brand span { color: #ffc66d; }
+  .tagline { margin: 8px 0 23px; color: #aebbd0; font-size: 10px; letter-spacing: 2px; line-height: 1.6; }
   nav { display: flex; flex-wrap: wrap; gap: 0 23px; border-top: 1px solid #ffffff20; }
   nav a { padding: 16px 0; color: #dce4f0; font-size: 12px; text-decoration: none; }
   nav a:hover { color: #ffc66d; }
   main { max-width: 1160px; margin: 0 auto; padding: 30px 24px 55px; }
- .eyebrow { margin: 0 0 13px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
- .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #ffc66d; }
+  .eyebrow { margin: 0 0 13px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+  .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #ffc66d; }
   h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
   h2 { margin: 0; font-size: clamp(25px, 4vw, 34px); letter-spacing: -1px; }
- .top-stories { margin-bottom: 10px; }
- .hero-tag { display: inline-block; padding: 6px 10px; border-radius: 4px; background: #ffc66d; color: #172238; font-size: 10px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; }
- .hero-tag.small { padding: 4px 7px; font-size: 9px; margin-bottom: 6px; }
- .hero-small-wrap { display: flex; flex-direction: column; gap: 16px; }
- .hero-small { display: flex; gap: 14px; align-items: center; background: #fff; border: 1px solid #e1e6ef; border-radius: 8px; padding: 12px; text-decoration: none; color: #172238; flex: 1; }
- .hero-small img { width: 110px; height: 90px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
- .hero-small h3 { margin: 0; font-size: 16px; line-height: 1.3; }
- .design6-hero { background: #fff; border: 1px solid #e1e6ef; border-radius: 12px; overflow: hidden; padding: 0; }
- .d6-hero-wrap { display: grid; grid-template-columns: 1fr 1fr; }
- .d6-hero-image img { width: 100%; height: 100%; min-height: 320px; object-fit: cover; display: block; }
- .d6-hero-text { padding: 32px; display: flex; flex-direction: column; justify-content: center; }
- .d6-hero-text h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.05; }
- .d6-hero-sub { color: #4a5568; font-size: 15px
+  .top-stories { margin-bottom: 10px; }
+  .hero-tag { display: inline-block; padding: 6px 10px; border-radius: 4px; background: #ffc66d; color: #172238; font-size: 10px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; }
+  .hero-tag.small { padding: 4px 7px; font-size: 9px; margin-bottom: 6px; }
+  .hero-small-wrap { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+  .hero-small { display: flex; gap: 14px; align-items: center; background: #fff; border: 1px solid #e1e6ef; border-radius: 8px; padding: 12px; text-decoration: none; color: #172238; flex: 1; }
+  .hero-small img { width: 110px; height: 90px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .hero-small h3 { margin: 0; font-size: 16px; line-height: 1.3; }
+  .design6-hero { background: #fff; border: 1px solid #e1e6ef; border-radius: 12px; overflow: hidden; padding: 0; }
+  .d6-hero-wrap { display: grid; grid-template-columns: 1fr 1fr; }
+  .d6-hero-image img {
