@@ -191,7 +191,12 @@ async function createAiDraft({ title, summary, category, publisher }) {
   if (!response.ok) throw new Error(`Cloudflare AI returned HTTP ${response.status}`);
   const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content !== "string") throw new Error("Cloudflare AI returned no draft text.");
+  if (typeof content !== "string" || !content.trim()) {
+    const providerError = cleanText(payload?.errors?.map?.(item => item?.message || item?.code).filter(Boolean).join("; "), 300);
+    const finishReason = cleanText(payload?.choices?.[0]?.finish_reason || "not supplied", 80);
+    const responseKeys = Object.keys(payload?.result || payload || {}).slice(0, 12).join(", ");
+    throw new Error(`Cloudflare AI returned no draft text (finish_reason=${finishReason}; response_keys=${responseKeys || "none"}${providerError ? `; provider_error=${providerError}` : ""}).`);
+  }
   const jsonText = content.trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/i, "");
   const draft = JSON.parse(jsonText);
   const headline = cleanText(draft.headline, 160);
@@ -207,11 +212,16 @@ async function createAiDraft({ title, summary, category, publisher }) {
 for (const feed of feeds) {
   try {
     const parsed = await parser.parseURL(feed.url);
-    for (const item of (parsed.items || []).slice(0, 5)) {
+    const items = (parsed.items || []).slice(0, 5);
+    let skippedExisting = 0;
+    let processed = 0;
+    console.log(`Feed loaded (${feed.category}): ${items.length} candidate item(s) from ${parsed.title || "RSS feed"}.`);
+    for (const item of items) {
       const title = cleanText(item.title, 250);
       const url = cleanText(item.link, 1000);
       if (!title || !url || !/^https?:\/\//i.test(url)) continue;
-      if (issueExists(url)) continue;
+      if (issueExists(url)) { skippedExisting++; continue; }
+      processed++;
 
       const published = item.isoDate || item.pubDate || "Date not supplied by source";
       const feedSummary = cleanText(item.contentSnippet || item.summary || "Open the original source to review the full report.", 450);
@@ -309,6 +319,7 @@ for (const feed of feeds) {
 
       newStories.push({ category: feed.category, title: draft?.headline || title, url, published, summary: draft?.summary || feedSummary, issueUrl, ai: Boolean(draft) });
     }
+    console.log(`Feed results (${feed.category}): ${skippedExisting} already queued; ${processed} new candidate(s) evaluated.`);
   } catch (error) {
     console.error(`Feed failed (${feed.category}): ${error.message}`);
   }
