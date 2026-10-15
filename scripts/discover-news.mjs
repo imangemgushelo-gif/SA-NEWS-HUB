@@ -251,7 +251,7 @@ for (const feed of feeds) {
 
       // Publish only when AI returned a complete draft and the resolved source is on the trusted allowlist.
       // Any failed or uncertain check falls back to the existing pending-review issue.
-      if (draft) {
+      if (draft && autoPublishingEnabled) {
         try {
           const verified = await resolveTrustedSource(url);
           if (verified) {
@@ -280,7 +280,11 @@ for (const feed of feeds) {
         }
       }
 
-      if (draft && !autoPublishingEnabled) {\n        draftStatus = "AI draft generated, but automatic publishing is disabled pending editorial-quality and live-site checks.";\n      }\n\n      const body = [
+      if (draft && !autoPublishingEnabled) {\n        draftStatus = "AI draft generated, but automatic publishing is disabled pending editorial-quality and live-site checks.";\n      }\n\n      if (draft && !autoPublishingEnabled) {
+        draftStatus = "AI draft generated, but automatic publishing is disabled pending editorial-quality and live-site checks.";
+      }
+
+      const body = [
         "## Pending editorial review",
         "",
         "**Status:** PENDING — this story is not published on SA News Hub.",
@@ -356,3 +360,4 @@ if (newStories.length || autoPublished.length) {
 } else {
   console.log("No new stories found; no email sent.");
 }
+console.log(`Discovery diagnostics: ${feedItemsSeen} feed item(s) checked; ${duplicateItemsSkipped} already-queued duplicate(s) skipped; ${aiDraftFailures} AI draft failure(s); ${sourceChecksPassed} trusted-source check(s) passed; auto-publishing ${autoPublishingEnabled ? "ENABLED" : "DISABLED"}.`);
