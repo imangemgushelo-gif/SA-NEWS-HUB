@@ -1,0 +1,84 @@
+---
+import "../styles/page-themes.css";
+const sections = [
+  { name: "South Africa", url: "/south-africa/" },
+  { name: "World", url: "/world/" },
+  { name: "Politics", url: "/politics/" },
+  { name: "Markets & Forex", url: "/markets-forex/" },
+  { name: "Sport", url: "/sport/" },
+  { name: "Technology", url: "/technology/" },
+  { name: "Jobs", url: "/jobs/" },
+  { name: "Weather", url: "/weather/" },
+  { name: "Economic Calendar", url: "/economic-calendar/" },
+];
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SA Jobs | SA News Hub</title>
+  <meta name="description" content="Where companies and government are hiring in South Africa. Search jobs by town, province and type." />
+</head>
+<body data-page-theme="jobs">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">SA NEWS <span>HUB.</span></a>
+      <p class="tagline">NEWS THAT MATTERS. MARKETS THAT MOVE.</p>
+      <nav aria-label="Main navigation">
+        {sections.map((s) => (<a href={s.url}>{s.name}</a>))}
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <p class="eyebrow">OPPORTUNITIES</p>
+    <h1>SA Jobs - Who Is Hiring?</h1>
+    <p class="intro">Hiring news from companies, municipalities and government. Search by job, town or province.</p>
+
+    <div class="filter-box">
+      <input id="jobSearch" type="text" placeholder="Search job, company, town - e.g. SAPS, Durban, Cashier..." />
+      <select id="jobLocation">
+        <option value="">All Locations</option>
+        <option value="Gauteng">Gauteng</option>
+        <option value="Western Cape">Western Cape</option>
+        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+        <option value="Eastern Cape">Eastern Cape</option>
+        <option value="Limpopo">Limpopo</option>
+        <option value="Mpumalanga">Mpumalanga</option>
+        <option value="North West">North West</option>
+        <option value="Free State">Free State</option>
+        <option value="Northern Cape">Northern Cape</option>
+        <option value="Nationwide">Nationwide / Remote</option>
+      </select>
+      <select id="jobType">
+        <option value="">All Types</option>
+        <option value="Permanent">Permanent</option>
+        <option value="Contract">Contract</option>
+        <option value="Internship">Internship</option>
+        <option value="Learnership">Learnership</option>
+      </select>
+    </div>
+
+    <p id="jobCount"></p>
+    <div id="jobList" class="job-grid"></div>
+    <p id="noJobs" style="display:none;">No jobs found. Try another town, keyword or province.</p>
+    <p class="disclaimer">Always apply on the official company / government site. Never pay to apply for a job.</p>
+  </main>
+
+  <footer class="site-footer">
+    <a class="footer-brand" href="/">SA NEWS <span>HUB.</span></a>
+    <p>Independent news project · © 2026 SA News Hub</p>
+    <div class="footer-links">
+      <a href="/about/">About</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy-policy/">Privacy Policy</a>
+    </div>
+    <a class="footer-top" href="#">Back to top ↑</a>
+  </footer>
+
+  <script>
+    const jobs = [
+      { title: "SAPS Police Trainees - 5,500 Posts", company: "SAPS", location: "Nationwide", province: "Nationwide", type: "Learnership", closing: "30 Nov 2026", link: "#" },
+     
