@@ -54,9 +54,16 @@ const sections = [
     </div>
   </section>
 
-  <!-- 2. LATEST NEWS - CATEGORIES ONLY -->
+  <!-- 2. LATEST NEWS -->
   <section class="section-heading" id="sections">
     <div><p class="eyebrow">THE NEWSROOM</p><h2>Latest News</h2></div>
+    <a class="section-link" href="/south-africa/">All news →</a>
+  </section>
+  <section id="latestNewsGrid" class="latest-news-grid" aria-live="polite">
+    <p class="news-loading">Loading the latest headlines…</p>
+  </section>
+  <section class="section-heading category-heading">
+    <div><p class="eyebrow">EXPLORE THE NEWSROOM</p><h2>Browse by Category</h2></div>
   </section>
   <section class="news-grid">
     {sections.map((section) => (
@@ -99,7 +106,7 @@ const sections = [
         <div><p class="eyebrow">WEATHER</p><h2>Weather for SA</h2></div>
         <a class="section-link" href="/weather/">Full weather →</a>
       </section>
-      <div id="homeWeatherResult" class="weather-result">Loading Johannesburg weather...</div>
+      <div id="homeWeatherResult" class="weather-result">Loading East London weather...</div>
       <div id="homeWeatherGrid" class="mini-grid-2" style="margin-top:14px;"></div>
     </div>
   </section>
@@ -124,7 +131,7 @@ const sections = [
       <h2>Contact</h2>
       <a href="mailto:hello@sanewshubs.co.za">✉ hello@sanewshubs.co.za</a>
       <a href="tel:+27214005000">☎ +27 21 400 5000</a>
-      <span>⌖ Cape Town, South Africa</span>
+      <span>⌖ East London, Eastern Cape, South Africa</span>
     </div>
   </div>
   <div class="footer-bottom"><span>© 2026 SA News Hubs. All rights reserved.</span><span><a href="/privacy-policy/">Privacy Policy</a></span><a class="footer-top" href="#">Back to top ↑</a></div>
@@ -154,10 +161,21 @@ const sections = [
     const data = await res.json();
     return (data.items || []).slice(0, limit);
   }
-  fetchNews("South Africa", 3).then(items=>{
-    const el=document.getElementById("heroLive");
-    if(el && items.length) el.innerHTML = items.map(n=>`<a class="hero-small" href="${n.link}" target="_blank" rel="noopener"><img src="${n.thumbnail || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80'}" alt="" /><div><span class="hero-tag small">LIVE</span><h3>${n.title}</h3></div></a>`).join("");
-  }).catch(()=>{});
+  fetchNews("South Africa", 6).then(items=>{
+    const grid=document.getElementById("latestNewsGrid");
+    if(!grid) return;
+    if(!items.length){ grid.innerHTML='<p class="news-loading">Headlines are temporarily unavailable. Please try again shortly.</p>'; return; }
+    grid.innerHTML=items.map((n,i)=>`<article class="latest-news-card ${i===0?'featured-news-card':''}">
+      <a class="latest-news-image" href="${n.link}" target="_blank" rel="noopener" aria-label="Read ${n.title}">
+        <img loading="lazy" src="${n.thumbnail || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=900&q=80'}" alt="" />
+        <span class="news-pill">${i===0?'TOP STORY':'LATEST'}</span>
+      </a>
+      <div class="latest-news-copy"><p class="eyebrow">SOUTH AFRICA</p><h3><a href="${n.link}" target="_blank" rel="noopener">${n.title}</a></h3><a class="read-story-link" href="${n.link}" target="_blank" rel="noopener">Read full story ↗</a></div>
+    </article>`).join("");
+  }).catch(()=>{
+    const grid=document.getElementById("latestNewsGrid");
+    if(grid) grid.innerHTML='<p class="news-loading">Headlines are temporarily unavailable. Please try again shortly.</p>';
+  });
 
   async function renderHomeJobs(){
     const q=document.getElementById("homeJobSearch")?.value||"";
@@ -187,7 +205,7 @@ const sections = [
   }
   async function loadHomeGrid(){
     const grid=document.getElementById("homeWeatherGrid"); if(!grid) return;
-    const cities=[{name:"Johannesburg",lat:-26.2041,lon:28.0473},{name:"Cape Town",lat:-33.9249,lon:18.4241},{name:"Durban",lat:-29.8587,lon:31.0218},{name:"Gqeberha",lat:-33.9608,lon:25.6022}];
+    const cities=[{name:"East London",lat:-33.0153,lon:27.9116},{name:"Johannesburg",lat:-26.2041,lon:28.0473},{name:"Cape Town",lat:-33.9249,lon:18.4241},{name:"Durban",lat:-29.8587,lon:31.0218},{name:"Gqeberha",lat:-33.9608,lon:25.6022}];
     for(const c of cities){
       try{
         const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code&timezone=Africa/Johannesburg`);
@@ -199,7 +217,7 @@ const sections = [
       }catch(e){}
     }
   }
-  loadHomeWeather("Johannesburg",-26.2041,28.0473);
+  loadHomeWeather("East London",-33.0153,27.9116);
   loadHomeGrid();
 </script>
 </body>
@@ -233,6 +251,20 @@ const sections = [
   .d6-btn-outline { background: rgba(7,26,53,.42); color: #fff; border: 2px solid #fff; }
   .d6-btn-outline:hover { background: rgba(255,255,255,.15); }
   .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 44px auto 18px; max-width: 1240px; padding: 0 24px; }
+  .latest-news-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; max-width: 1192px; margin: 0 auto; padding: 0 24px; }
+  .latest-news-card { min-width: 0; overflow: hidden; background: #fff; border: 1px solid #e1e6ef; border-radius: 14px; box-shadow: 0 5px 18px #10213a0a; }
+  .featured-news-card { grid-column: span 2; }
+  .latest-news-image { position: relative; display: block; height: 190px; overflow: hidden; background: #dce3ec; }
+  .featured-news-card .latest-news-image { height: 260px; }
+  .latest-news-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .news-pill { position: absolute; top: 12px; left: 12px; padding: 6px 9px; border-radius: 5px; background: #ffc54d; color: #071a35; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+  .latest-news-copy { padding: 18px; }
+  .latest-news-copy .eyebrow { margin-bottom: 8px; }
+  .latest-news-copy h3 { margin: 0 0 16px; font-size: 18px; line-height: 1.35; }
+  .latest-news-copy h3 a { color: #14223a; text-decoration: none; }
+  .latest-news-copy h3 a:hover { color: #a66a13; }
+  .read-story-link,.section-link { color: #145b48; font-weight: 800; text-decoration: none; }
+  .news-loading { grid-column: 1/-1; padding: 24px; background: #fff; border-radius: 12px; color: #53627a; }
   .eyebrow { margin: 0 0 13px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
   .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #ffc66d; }
   h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
