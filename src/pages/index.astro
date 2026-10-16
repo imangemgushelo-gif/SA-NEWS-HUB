@@ -1,316 +1,178 @@
 ---
-const sections = [
-  { name: "South Africa", url: "/south-africa/", number: "01", label: "SA NEWS", description: "The stories shaping our nation." },
-  { name: "World", url: "/world/", number: "02", label: "GLOBAL", description: "Important developments from around the world." },
-  { name: "Politics", url: "/politics/", number: "03", label: "POLITICS", description: "Elections, parliament, government and policy." },
-  { name: "Markets & Forex", url: "/markets-forex/", number: "04", label: "MARKETS", description: "Currencies, financial markets and money." },
-  { name: "Sport", url: "/sport/", number: "05", label: "SPORT", description: "Teams, results and sporting highlights." },
-  { name: "Technology", url: "/technology/", number: "06", label: "TECH", description: "New ideas, innovation and digital trends." },
-  { name: "Jobs", url: "/jobs/", number: "07", label: "JOBS", description: "Where companies and government are hiring in SA." },
-  { name: "Weather", url: "/weather/", number: "08", label: "WEATHER", description: "Weather for every town and city in South Africa." },
-  { name: "Economic Calendar", url: "/economic-calendar/", number: "09", label: "ECONOMY", description: "Economic events and indicators to watch." }
-];
 ---
 
 <html lang="en">
 <head>
-  <meta name="google-site-verification" content="2RbFof9a2eHgd0C4XOU6Kyw9db23duJCzGwVj6WTzQU" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SA News Hub: South African news, world headlines, politics, markets, forex, sport, technology, jobs, weather and economic events." />
-  <meta name="theme-color" content="#101a2d" />
-  <title>SA News Hub | News that matters</title>
+  <title>SA News Hub — South Africa News, Jobs, Weather & Markets</title>
+  <meta name="description" content="Live South Africa news, real jobs, weather and markets. No fake content." />
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="/">SA NEWS <span>HUB.</span></a>
       <p class="tagline">NEWS THAT MATTERS. MARKETS THAT MOVE.</p>
-      <nav aria-label="Main navigation">
-        {sections.map((s) => (<a href={s.url}>{s.name}</a>))}
-        <a href="/about/">About</a>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/south-africa/">South Africa</a>
+        <a href="/jobs/">Jobs</a>
+        <a href="/weather/">Weather</a>
         <a href="/contact/">Contact</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- HERO -->
+    <!-- HERO - LIVE NEWS -->
     <section class="hero">
-      <div class="hero-grid">
-        <div class="hero-img">
-          <img src="https://images.unsplash.com/photo-1529107386315-7dcc0a56f13b?w=1200&q=80" alt="South African community" />
-        </div>
-        <div class="hero-text">
-          <p class="eyebrow"><span class="dot"></span> YOUR DAILY BRIEFING</p>
-          <h1>News and Jobs That Change Lives</h1>
-          <p class="hero-sub">Your trusted source for the latest South African news and career opportunities - empowering communities, creating futures.</p>
-          <div class="hero-btns">
-            <a href="#sections" class="btn-gold">Read News</a>
-            <a href="/jobs/" class="btn-outline">Find Jobs</a>
-          </div>
-        </div>
+      <p class="eyebrow">LIVE • SOUTH AFRICA</p>
+      <h1>Real News. Real Jobs.<br/>Real South Africa.</h1>
+      <p class="hero-sub">Top stories updated live from South African news sources. No invented headlines.</p>
+      <div class="hero-actions">
+        <a class="btn-dark" href="/south-africa/">Read Latest News →</a>
+        <a class="btn-light" href="/jobs/">Find Live Jobs →</a>
       </div>
-      <div class="hero-small-wrap">
-        <a class="hero-small" href="/markets-forex/">
-          <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80" alt="Markets" />
-          <div><span class="tag">MARKETS</span><h3>Rand steady as markets await SARB decision</h3></div>
-        </a>
-        <a class="hero-small" href="/sport/">
-          <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80" alt="Sport" />
-          <div><span class="tag">SPORT</span><h3>Boks name squad ahead of big weekend clash</h3></div>
-        </a>
-        <a class="hero-small" href="/jobs/">
-          <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=80" alt="Jobs" />
-          <div><span class="tag">JOBS</span><h3>Where is hiring right now in South Africa?</h3></div>
-        </a>
+      <div id="marketBar" class="market-bar">Loading markets...</div>
+    </section>
+
+    <!-- LIVE NEWS -->
+    <section>
+      <div class="section-head"><h2>Latest News in South Africa</h2><a href="/south-africa/">View all →</a></div>
+      <p id="newsStatus" class="muted">Loading live news...</p>
+      <div id="newsGrid" class="news-grid"></div>
+    </section>
+
+    <!-- LIVE JOBS -->
+    <section>
+      <div class="section-head"><h2>Live Jobs in South Africa</h2><a href="/jobs/">View all jobs →</a></div>
+      <p class="muted">Pulled live from Adzuna. Click Apply to go to the official listing.</p>
+      <div class="filter-box">
+        <input id="jobSearch" type="text" placeholder="Search live jobs, e.g. Cashier, Driver..." />
+        <button id="jobBtn" class="btn-dark small">Search</button>
       </div>
+      <p id="jobStatus" class="muted">Loading live jobs...</p>
+      <div id="jobList" class="job-grid"></div>
+      <p class="credit">Jobs powered by <a href="https://www.adzuna.co.za" target="_blank" rel="noopener">Adzuna</a></p>
     </section>
 
-    <!-- STATS -->
-    <section class="stats">
-      <div><strong>12k+</strong><span>News Articles</span><small>Published &amp; fact-checked</small></div>
-      <div><strong>3500+</strong><span>Jobs Posted</span><small>Across all provinces</small></div>
-      <div><strong>50k+</strong><span>Community Members</span><small>And growing daily</small></div>
-      <div><strong>9</strong><span>Provinces Covered</span><small>Nationwide coverage</small></div>
+    <!-- LIVE WEATHER -->
+    <section>
+      <div class="section-head"><h2>Weather Today</h2><a href="/weather/">Full forecast →</a></div>
+      <div id="weatherGrid" class="weather-grid">Loading live weather...</div>
     </section>
 
-    <!-- CATEGORIES -->
-    <section class="section-head" id="sections">
-      <div><p class="eyebrow">THE NEWSROOM</p><h2>Latest News</h2></div>
-      <p class="section-desc">Stay connected to the stories shaping your day. Choose a category below.</p>
-    </section>
-    <section class="news-grid">
-      {sections.map((s) => (
-        <a class="news-card" href={s.url}>
-          <div class="card-head"><span class="num">{s.number}</span><span class="label">{s.label}</span></div>
-          <div class="card-body"><h3>{s.name}</h3><p>{s.description}</p></div>
-          <div class="card-foot"><span>Explore section</span><span>↗</span></div>
-        </a>
-      ))}
-    </section>
-
-    <!-- MARKETS -->
-    <section class="section-head">
-      <div><p class="eyebrow">MONEY</p><h2>Markets &amp; Forex</h2></div>
-      <a class="section-link" href="/markets-forex/">View all markets →</a>
-    </section>
-    <section class="mini-grid">
-      <div class="mini-card"><strong>USD / ZAR</strong><p id="usdZar">Loading...</p><small>US Dollar to Rand</small></div>
-      <div class="mini-card"><strong>EUR / ZAR</strong><p id="eurZar">Loading...</p><small>Euro to Rand</small></div>
-      <div class="mini-card"><strong>GBP / ZAR</strong><p id="gbpZar">Loading...</p><small>Pound to Rand</small></div>
-      <div class="mini-card"><strong>Gold</strong><p>Live in Markets section</p><small>Spot price</small></div>
-    </section>
-
-    <!-- ECONOMIC CALENDAR -->
-    <section class="section-head">
-      <div><p class="eyebrow">ECONOMY</p><h2>Economic Calendar</h2></div>
-      <a class="section-link" href="/economic-calendar/">Full calendar →</a>
-    </section>
-    <section class="list-box">
-      <div class="list-row"><span>Thu, 20 Nov</span><strong>SARB Interest Rate Decision</strong><span class="pill">High Impact</span></div>
-      <div class="list-row"><span>Wed, 19 Nov</span><strong>SA CPI Inflation Data</strong><span class="pill">High Impact</span></div>
-      <div class="list-row"><span>Tue, 18 Nov</span><strong>US Fed Minutes</strong><span class="pill">Medium</span></div>
-    </section>
-
-    <!-- TECH -->
-    <section class="section-head">
-      <div><p class="eyebrow">INNOVATION</p><h2>Technology</h2></div>
-      <a class="section-link" href="/technology/">More tech →</a>
-    </section>
-    <section class="news-grid">
-      <a class="news-card" href="/technology/"><div class="card-body"><h3>AI is changing how SA businesses work</h3><p>Local companies adopt AI tools faster than ever.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-      <a class="news-card" href="/technology/"><div class="card-body"><h3>Starlink expands in Southern Africa</h3><p>Internet access grows in rural areas.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-      <a class="news-card" href="/technology/"><div class="card-body"><h3>Load shedding apps get smarter</h3><p>New features help households plan ahead.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-    </section>
-
-    <!-- SPORT -->
-    <section class="section-head">
-      <div><p class="eyebrow">SPORT</p><h2>Sport</h2></div>
-      <a class="section-link" href="/sport/">More sport →</a>
-    </section>
-    <section class="news-grid">
-      <a class="news-card" href="/sport/"><div class="card-body"><h3>Springboks: What to expect this weekend</h3><p>Team news, kick-off time and where to watch.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-      <a class="news-card" href="/sport/"><div class="card-body"><h3>Proteas build momentum ahead of series</h3><p>Key players return to form.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-      <a class="news-card" href="/sport/"><div class="card-body"><h3>PSL: Weekend fixtures and predictions</h3><p>All the big games in one place.</p></div><div class="card-foot"><span>Read story</span><span>↗</span></div></a>
-    </section>
-
-    <!-- JOBS -->
-    <section class="section-head">
-      <div><p class="eyebrow">OPPORTUNITIES</p><h2>SA Jobs - Who Is Hiring?</h2></div>
-      <a class="section-link" href="/jobs/">All jobs →</a>
-    </section>
-    <section class="filter-box">
-      <input id="homeJobSearch" type="text" placeholder="Search jobs, e.g. SAPS, Durban, Cashier..." />
-      <select id="homeJobLocation">
-        <option value="">All Locations</option>
-        <option value="Gauteng">Gauteng</option>
-        <option value="Western Cape">Western Cape</option>
-        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-        <option value="Eastern Cape">Eastern Cape</option>
-        <option value="Nationwide">Nationwide</option>
-      </select>
-    </section>
-    <div id="homeJobList" class="mini-grid"></div>
-    <p id="homeNoJobs" style="display:none;">No jobs found. Try another town or keyword.</p>
-
-    <!-- WEATHER -->
-    <section class="section-head">
-      <div><p class="eyebrow">WEATHER</p><h2>Weather for SA</h2></div>
-      <a class="section-link" href="/weather/">Full weather →</a>
-    </section>
-    <section class="filter-box">
-      <input id="homeCitySearch" type="text" placeholder="Search town, e.g. Gqeberha, Polokwane, Soweto..." />
-      <button id="homeWeatherBtn" class="search-btn">Search</button>
-    </section>
-    <div id="homeWeatherResult" class="weather-result">Loading Johannesburg weather...</div>
-    <div id="homeWeatherGrid" class="mini-grid" style="margin-top:14px;"></div>
-
-    <!-- TESTIMONIALS -->
-    <section class="section-head">
-      <div><p class="eyebrow">COMMUNITY</p><h2>What Our Community Says</h2></div>
-    </section>
-    <p class="testi-sub">Real stories from people across South Africa</p>
-    <section class="testi-grid">
-      <div class="testi"><span>⭐⭐⭐⭐⭐</span><p>"SA News Hubs helped me find a teaching job close to home. The process was simple and genuine."</p><small>Teacher, Johannesburg</small></div>
-      <div class="testi"><span>⭐⭐⭐⭐⭐</span><p>"I rely on SA News Hubs for reliable local news. It keeps me connected to what's happening in my province."</p><small>Community Member, joined Jan 2024</small></div>
-      <div class="testi"><span>⭐⭐⭐⭐⭐</span><p>"The jobs section is updated daily and the roles are real. Landed my new role in just two weeks!"</p><small>Solar Technician, Cape Town</small></div>
-    </section>
-
-    <section class="closing">
-      <div><p class="eyebrow light">STAY INFORMED</p><h2>Good information<br />changes perspective.</h2></div>
-      <a class="closing-link" href="#sections">Discover our sections →</a>
+    <!-- ABOUT - HONEST -->
+    <section class="about-box">
+      <h2>About SA News Hub</h2>
+      <p>SA News Hub is an independent project bringing together live South African news, real job listings, weather and market data in one place. We don't invent stories, jobs or reviews. If a section is empty, it means we're still loading real data — not making it up.</p>
+      <a href="/contact/">Contact Us →</a>
     </section>
   </main>
 
   <footer class="site-footer">
     <a class="footer-brand" href="/">SA NEWS <span>HUB.</span></a>
-    <p>Independent news project · © 2026 SA News Hub</p>
-    <div class="footer-links">
-      <a href="/about/">About</a>
-      <a href="/contact/">Contact</a>
-      <a href="/privacy-policy/">Privacy Policy</a>
-    </div>
-    <a class="footer-top" href="#">Back to top ↑</a>
+    <p>Independent news project · © 2026 SA News Hub · Jobs by Adzuna · Weather by Open-Meteo</p>
+    <p><a href="/contact/">Contact</a></p>
   </footer>
 
-  <script>
-    fetch("https://api.frankfurter.app/latest?from=ZAR&to=USD,EUR,GBP").then(r=>r.json()).then(d=>{
-      const usd = 1 / d.rates.USD; const eur = 1 / d.rates.EUR; const gbp = 1 / d.rates.GBP;
-      const u=document.getElementById("usdZar"); if(u) u.textContent="R "+usd.toFixed(2);
-      const e=document.getElementById("eurZar"); if(e) e.textContent="R "+eur.toFixed(2);
-      const g=document.getElementById("gbpZar"); if(g) g.textContent="R "+gbp.toFixed(2);
-    }).catch(()=>{});
-    const homeJobs=[
-      {title:"SAPS Police Trainees - 5,500 Posts",company:"SAPS",location:"Nationwide",province:"Nationwide",closing:"30 Nov 2026"},
-      {title:"Cashiers - Checkers",company:"Shoprite Group",location:"Gqeberha",province:"Eastern Cape",closing:"15 Nov 2026"},
-      {title:"Transnet Apprenticeship",company:"Transnet",location:"Durban",province:"KwaZulu-Natal",closing:"20 Nov 2026"},
-      {title:"Data Capturer - City of Cape Town",company:"City of Cape Town",location:"Cape Town",province:"Western Cape",closing:"12 Nov 2026"},
+<script>
+  // --- USE SAME ADZUNA KEYS AS JOBS PAGE ---
+  const APP_ID = "YOUR_APP_ID_HERE";
+  const APP_KEY = "YOUR_APP_KEY_HERE";
+
+  // 1. LIVE NEWS - Google News ZA via rss2json (no key needed)
+  async function loadNews() {
+    try {
+      const res = await fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://news.google.com/rss/search?q=South%20Africa&hl=en-ZA&gl=ZA&ceid=ZA:en"));
+      const data = await res.json();
+      const items = (data.items || []).slice(0, 6);
+      document.getElementById("newsStatus").textContent = "";
+      document.getElementById("newsGrid").innerHTML = items.map(n => `
+        <article class="news-card">
+          <img src="${n.thumbnail || ""}" alt="" onerror="this.style.display='none'" />
+          <div><small>${new Date(n.pubDate).toLocaleDateString("en-ZA")} • ${n.author || "Google News"}</small>
+          <h3><a href="${n.link}" target="_blank" rel="noopener">${n.title}</a></h3>
+          <p>${(n.description || "").replace(/<[^>]*>/g,"").slice(0,130)}...</p>
+          <a href="${n.link}" target="_blank" rel="noopener">Read Full Story →</a></div>
+        </article>`).join("");
+    } catch(e) { document.getElementById("newsStatus").textContent = "Could not load news. Please refresh."; }
+  }
+
+  // 2. LIVE JOBS - Adzuna
+  async function loadJobs() {
+    const q = document.getElementById("jobSearch").value || "";
+    const list = document.getElementById("jobList");
+    const status = document.getElementById("jobStatus");
+    status.textContent = "Loading live jobs...";
+    list.innerHTML = "";
+    try {
+      const res = await fetch(`https://api.adzuna.com/v1/api/jobs/za/search/1?app_id=${APP_ID}&app_key=${APP_KEY}&results_per_page=6&what=${encodeURIComponent(q)}&sort_by=date`);
+      const data = await res.json();
+      if (!data.results || data.results.length === 0) { status.textContent = "No live jobs found. Try another keyword."; return; }
+      status.textContent = "";
+      list.innerHTML = data.results.map(j => `
+        <article class="job-card">
+          <span class="pill">${j.location?.display_name || "South Africa"}</span>
+          <h3>${j.title}</h3>
+          <p><strong>${j.company?.display_name || ""}</strong></p>
+          <small>${j.created ? new Date(j.created).toLocaleDateString("en-ZA") : ""}</small>
+          <a class="apply" href="${j.redirect_url}" target="_blank" rel="noopener">Apply on Official Site →</a>
+        </article>`).join("");
+    } catch(e) { status.textContent = "Could not load jobs. Check your Adzuna keys."; }
+  }
+
+  // 3. LIVE WEATHER - Open-Meteo (no key)
+  async function loadWeather() {
+    const cities = [
+      { name: "East London", lat: -33.0153, lon: 27.9116 },
+      { name: "Johannesburg", lat: -26.2041, lon: 28.0473 },
+      { name: "Cape Town", lat: -33.9249, lon: 18.4241 },
+      { name: "Durban", lat: -29.8587, lon: 31.0218 },
     ];
-    function renderHomeJobs(){
-      const q=(document.getElementById("homeJobSearch")?.value||"").toLowerCase();
-      const loc=document.getElementById("homeJobLocation")?.value||"";
-      const filtered=homeJobs.filter(j=>{
-        const m=(j.title+" "+j.company+" "+j.location).toLowerCase().includes(q);
-        const ml=!loc||j.province===loc||j.province==="Nationwide";
-        return m&&ml;
-      });
-      const list=document.getElementById("homeJobList");
-      const noEl=document.getElementById("homeNoJobs");
-      if(noEl) noEl.style.display=filtered.length===0?"block":"none";
-      if(list) list.innerHTML=filtered.map(j=>`<div class="mini-card"><strong>${j.title}</strong><p>${j.company} - ${j.location}</p><small>Closing: ${j.closing}</small><br><a href="/jobs/" class="job-link">View & Apply →</a></div>`).join("");
-    }
-    document.getElementById("homeJobSearch")?.addEventListener("input",renderHomeJobs);
-    document.getElementById("homeJobLocation")?.addEventListener("change",renderHomeJobs);
-    renderHomeJobs();
-    const homeCities=[
-      {name:"Johannesburg",lat:-26.2041,lon:28.0473},
-      {name:"Cape Town",lat:-33.9249,lon:18.4241},
-      {name:"Durban",lat:-29.8587,lon:31.0218},
-      {name:"Gqeberha",lat:-33.9608,lon:25.6022},
-    ];
-    function wText(c){if(c===0)return"Clear Sky ☀️";if(c<=3)return"Partly Cloudy ⛅";if(c<=48)return"Foggy 🌫️";if(c<=67)return"Rain 🌧️";if(c<=82)return"Showers 🌦️";return"Thunderstorm ⛈️";}
-    async function loadHomeWeather(name,lat,lon){
-      try{
-        const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Africa/Johannesburg`);
-        const d=await res.json();
-        const el=document.getElementById("homeWeatherResult");
-        if(el) el.innerHTML=`<strong>${name}</strong> - <span style="font-size:28px;">${Math.round(d.current.temperature_2m)}°C</span> ${wText(d.current.weather_code)} | Wind ${d.current.wind_speed_10m} km/h`;
-      }catch(e){}
-    }
-    async function loadHomeGrid(){
-      const grid=document.getElementById("homeWeatherGrid"); if(!grid) return;
-      for(const c of homeCities){
-        try{
-          const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code&timezone=Africa/Johannesburg`);
-          const d=await res.json();
-          const div=document.createElement("div"); div.className="mini-card"; div.style.cursor="pointer";
-          div.innerHTML=`<strong>${c.name}</strong><p>${Math.round(d.current.temperature_2m)}°C</p><small>${wText(d.current.weather_code)}</small>`;
-          div.onclick=()=>loadHomeWeather(c.name,c.lat,c.lon);
-          grid.appendChild(div);
-        }catch(e){}
-      }
-    }
-    async function searchHomeCity(){
-      const val=document.getElementById("homeCitySearch")?.value; if(!val) return;
-      const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=1&countryCode=ZA&language=en&format=json`);
-      const g=await geo.json();
-      if(g.results&&g.results.length>0){const r=g.results[0]; loadHomeWeather(r.name,r.latitude,r.longitude);}
-      else{const el=document.getElementById("homeWeatherResult"); if(el) el.textContent="Town not found. Try another spelling.";}
-    }
-    document.getElementById("homeWeatherBtn")?.addEventListener("click",searchHomeCity);
-    document.getElementById("homeCitySearch")?.addEventListener("keydown",e=>{if(e.key==="Enter")searchHomeCity();});
-    loadHomeWeather("Johannesburg",-26.2041,28.0473);
-    loadHomeGrid();
-  </script>
+    try {
+      const html = await Promise.all(cities.map(async c => {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`);
+        const d = await r.json();
+        return `<div class="weather-card"><h3>${c.name}</h3><div class="temp">${Math.round(d.current.temperature_2m)}°C</div><p>Wind ${Math.round(d.current.wind_speed_10m)} km/h • Humidity ${d.current.relative_humidity_2m}%</p><small>Live • Open-Meteo</small></div>`;
+      }));
+      document.getElementById("weatherGrid").innerHTML = html.join("");
+    } catch(e) { document.getElementById("weatherGrid").textContent = "Weather unavailable right now."; }
+  }
+
+  // 4. LIVE MARKETS - USD/ZAR
+  async function loadMarkets() {
+    try {
+      const r = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=ZAR,EUR,GBP");
+      const d = await r.json();
+      document.getElementById("marketBar").innerHTML = `USD/ZAR <b>R${d.rates.ZAR.toFixed(2)}</b> &nbsp;•&nbsp; EUR/USD <b>${(1/d.rates.EUR).toFixed(2)}</b> &nbsp;•&nbsp; GBP/USD <b>${(1/d.rates.GBP).toFixed(2)}</b> &nbsp;•&nbsp; <span class="live-dot">LIVE</span>`;
+    } catch(e) { document.getElementById("marketBar").textContent = "Markets unavailable"; }
+  }
+
+  document.getElementById("jobBtn").addEventListener("click", loadJobs);
+  loadNews(); loadJobs(); loadWeather(); loadMarkets();
+</script>
 </body>
 </html>
 
 <style>
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;background:#f3f5f9;color:#172238;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
- .site-header{background:#101a2d;color:#fff}
- .header-inner{max-width:1160px;margin:0 auto;padding:24px 24px 0}
- .brand,.footer-brand{display:inline-block;color:#fff;font-size:25px;font-weight:900;letter-spacing:1px;text-decoration:none}
- .brand span,.footer-brand span{color:#ffc66d}
- .tagline{margin:8px 0 23px;color:#aebbd0;font-size:10px;letter-spacing:2px;line-height:1.6}
-  nav{display:flex;flex-wrap:wrap;gap:0 23px;border-top:1px solid #ffffff20}
-  nav a{padding:16px 0;color:#dce4f0;font-size:12px;text-decoration:none}
-  nav a:hover{color:#ffc66d}
+  *{box-sizing:border-box} body{margin:0;background:#f3f5f9;color:#172238;font-family:Arial,Helvetica,sans-serif}
+  .site-header{background:#101a2d;color:#fff}.header-inner{max-width:1160px;margin:0 auto;padding:24px 24px 0}
+  .brand,.footer-brand{color:#fff;font-size:25px;font-weight:900;letter-spacing:1px;text-decoration:none}.brand span,.footer-brand span{color:#ffc66d}
+  .tagline{margin:8px 0 23px;color:#aebbd0;font-size:10px;letter-spacing:2px}
+  nav{display:flex;flex-wrap:wrap;gap:0 23px;border-top:1px solid #ffffff20} nav a{padding:16px 0;color:#dce4f0;font-size:12px;text-decoration:none}
   main{max-width:1160px;margin:0 auto;padding:30px 24px 55px}
- .eyebrow{margin:0 0 13px;color:#a66a13;font-size:10px;font-weight:800;letter-spacing:2px}
- .eyebrow.light{color:#ffc66d}
- .dot{display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#ffc66d}
-  h1{margin:0;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-1px;line-height:1.1}
-  h2{margin:0;font-size:clamp(25px,4vw,34px);letter-spacing:-1px}
- .hero{background:#fff;border:1px solid #e1e6ef;border-radius:12px;overflow:hidden;margin-bottom:10px}
- .hero-grid{display:grid;grid-template-columns:1fr 1fr}
- .hero-img img{width:100%;height:100%;min-height:320px;object-fit:cover;display:block}
- .hero-text{padding:32px;display:flex;flex-direction:column;justify-content:center}
- .hero-sub{color:#4a5568;font-size:15px;line-height:1.6;margin:16px 0 24px}
- .hero-btns{display:flex;gap:12px;flex-wrap:wrap}
- .btn-gold{background:#ffc66d;color:#172238;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:800;font-size:14px}
- .btn-outline{border:2px solid #101a2d;color:#101a2d;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:800;font-size:14px}
- .hero-small-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:16px}
- .hero-small{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid #e1e6ef;border-radius:8px;padding:12px;text-decoration:none;color:#172238}
- .hero-small img{width:110px;height:90px;object-fit:cover;border-radius:6px;flex-shrink:0}
- .hero-small h3{margin:0;font-size:16px;line-height:1.3}
- .tag{display:inline-block;padding:4px 7px;border-radius:4px;background:#ffc66d;color:#172238;font-size:9px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
- .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0 40px;background:#101a2d;color:#fff;padding:24px;border-radius:12px;text-align:center}
- .stats strong{display:block;font-size:28px;color:#ffc66d}
- .stats span{display:block;font-weight:700;margin:4px 0 2px}
- .stats small{color:#aebbd0;font-size:12px}
- .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:44px 0 18px;flex-wrap:wrap}
- .section-desc{color:#5a6a80;max-width:420px;margin:0;font-size:14px;line-height:1.5}
- .section-link{color:#176447;font-weight:800;text-decoration:none;font-size:14px}
- .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
- .news-card{background:#fff;border:1px solid #e1e6ef;border-radius:10px;padding:20px;text-decoration:none;color:#172238;display:flex;flex-direction:column;min-height:160px}
- .news-card:hover{border-color:#ffc66d;box-shadow:0 8px 24px rgba(0,0,0,.08)}
- .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
- .num{font-size:22px;font-weight:900;color:#e1e6ef}
- .label{background:#fff3d6;color:#a66a13;padding:5px 8px;border-radius:4px;font-size:10px;font-weight:900;letter-spacing:1px}
- .card-body{flex:1}
- .card-body h3{margin:0 0 8px;font-size:19px;line-height:1.3}
- .card-body p{margin:0;color:#5a6a80;font-size:14px;line-height:1.5}
- .card-foot{display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid #eef1f6
+  .eyebrow{margin:0 0 10px;color:#a66a13;font-size:10px;font-weight:800;letter-spacing:2px}
+  h1{margin:0;font-size:42px;line-height:1.05;letter-spacing:-1px} .hero-sub{color:#5a6a80;max-width:620px;line-height:1.6}
+  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.btn-dark{background:#101a2d;color:#fff;padding:13px 20px;border-radius:8px;text-decoration:none;font-weight:800;font-size:14px;border:none;cursor:pointer}.btn-light{background:#fff;color:#101a2d;padding:13px 20px;border-radius:8px;text-decoration:none;font-weight:800;font-size:14px;border:1px solid #d8dee9}.btn-dark.small{padding:13px 18px}
+  .market-bar{background:#101a2d;color:#fff;padding:14px 16px;border-radius:10px;margin-top:22px;font-size:13px}.live-dot{color:#4ade80;font-weight:900}
+  section{margin-top:44px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.section-head h2{margin:0;font-size:24px}.section-head a,.news-card a,.about-box a{color:#176447;font-weight:800;text-decoration:none}.muted{color:#5a6a80;font-size:14px}.credit{font-size:12px;color:#5a6a80}
+  .news-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.news-card{background:#fff;border:1px solid #e1e6ef;border-radius:10px;padding:16px;display:flex;gap:14px}.news-card img{width:110px;height:90px;object-fit:cover;border-radius:8px}.news-card h3{margin:8px 0 6px;font-size:16px;line-height:1.35}.news-card h3 a{color:#172238}.news-card p{margin:0 0 8px;color:#5a6a80;font-size:13px;line-height:1.5}.news-card small{color:#8a99ad;font-size:11px}
+  .filter-box{display:flex;gap:10px;margin:14px 0}.filter-box input{flex:1;padding:13px;border:1px solid #d8dee9;border-radius:8px}
+  .job-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.job-card{background:#fff;border:1px solid #e1e6ef;border-radius:10px;padding:20px}.job-card h3{margin:10px 0 6px;font-size:17px}.pill{background:#fff3d6;color:#a66a13;padding:5px 8px;border-radius:4px;font-size:10px;font-weight:900}.apply{display:block;margin-top:10px;color:#176447;font-weight:800;text-decoration:none}
+  .weather-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.weather-card{background:#101a2d;color:#fff;border-radius:12px;padding:20px}.weather-card h3{margin:0}.temp{font-size:34px;font-weight:900;margin:12px 0 6px}.weather-card p{color:#aebbd0;font-size:13px}.weather-card small{color:#7d8da3}
+  .about-box{background:#fff;border:1px solid #e1e6ef;border-radius:12px;padding:24px}.about-box p{color:#5a6a80;line-height:1.7}
+  .site-footer{background:#101a2d;color:#aebbd0;padding:32px 24px;text-align:center}.site-footer a{color:#dce4f0}
+  @media(max-width:850px){.news-grid,.job-grid{grid-template-columns:1fr 1fr}.weather-grid{grid-template-columns:1fr 1fr} h1{font-size:32px}}
+  @media(max-width:520px){.news-grid,.job-grid,.weather-grid{grid-template-columns:1fr} main{padding:20px 16px 40px} .news-card{flex-direction:column} .news-card img{width:100%;height:160px}}
+</style>
