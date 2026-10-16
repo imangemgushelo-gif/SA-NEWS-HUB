@@ -5,8 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SA News Hub — South Africa News, Jobs, Weather & Markets</title>
-  <meta name="description" content="Live South Africa news, real jobs, weather and markets. No fake content." />
+  <title>Jobs in South Africa | SA News Hub</title>
 </head>
 <body>
   <header class="site-header">
@@ -24,155 +23,99 @@
   </header>
 
   <main>
-    <!-- HERO - LIVE NEWS -->
-    <section class="hero">
-      <p class="eyebrow">LIVE • SOUTH AFRICA</p>
-      <h1>Real News. Real Jobs.<br/>Real South Africa.</h1>
-      <p class="hero-sub">Top stories updated live from South African news sources. No invented headlines.</p>
-      <div class="hero-actions">
-        <a class="btn-dark" href="/south-africa/">Read Latest News →</a>
-        <a class="btn-light" href="/jobs/">Find Live Jobs →</a>
-      </div>
-      <div id="marketBar" class="market-bar">Loading markets...</div>
-    </section>
+    <p class="eyebrow">OPPORTUNITIES</p>
+    <h1>Live Jobs in South Africa</h1>
+    <p class="sub">Real jobs pulled live from Adzuna. Click Apply to go directly to the official job listing.</p>
 
-    <!-- LIVE NEWS -->
-    <section>
-      <div class="section-head"><h2>Latest News in South Africa</h2><a href="/south-africa/">View all →</a></div>
-      <p id="newsStatus" class="muted">Loading live news...</p>
-      <div id="newsGrid" class="news-grid"></div>
-    </section>
+    <div class="filter-box">
+      <input id="jobSearch" type="text" placeholder="Search jobs, e.g. Cashier, Durban, Driver..." />
+      <select id="jobLocation">
+        <option value="">All South Africa</option>
+        <option value="Johannesburg">Johannesburg</option>
+        <option value="Cape Town">Cape Town</option>
+        <option value="Durban">Durban</option>
+        <option value="Pretoria">Pretoria</option>
+        <option value="Gqeberha">Gqeberha</option>
+        <option value="East London">East London</option>
+      </select>
+      <button id="searchBtn" class="search-btn">Search Live Jobs</button>
+    </div>
 
-    <!-- LIVE JOBS -->
-    <section>
-      <div class="section-head"><h2>Live Jobs in South Africa</h2><a href="/jobs/">View all jobs →</a></div>
-      <p class="muted">Pulled live from Adzuna. Click Apply to go to the official listing.</p>
-      <div class="filter-box">
-        <input id="jobSearch" type="text" placeholder="Search live jobs, e.g. Cashier, Driver..." />
-        <button id="jobBtn" class="btn-dark small">Search</button>
-      </div>
-      <p id="jobStatus" class="muted">Loading live jobs...</p>
-      <div id="jobList" class="job-grid"></div>
-      <p class="credit">Jobs powered by <a href="https://www.adzuna.co.za" target="_blank" rel="noopener">Adzuna</a></p>
-    </section>
-
-    <!-- LIVE WEATHER -->
-    <section>
-      <div class="section-head"><h2>Weather Today</h2><a href="/weather/">Full forecast →</a></div>
-      <div id="weatherGrid" class="weather-grid">Loading live weather...</div>
-    </section>
-
-    <!-- ABOUT - HONEST -->
-    <section class="about-box">
-      <h2>About SA News Hub</h2>
-      <p>SA News Hub is an independent project bringing together live South African news, real job listings, weather and market data in one place. We don't invent stories, jobs or reviews. If a section is empty, it means we're still loading real data — not making it up.</p>
-      <a href="/contact/">Contact Us →</a>
-    </section>
+    <p id="jobStatus">Loading live jobs...</p>
+    <div id="jobList" class="job-grid"></div>
+    <p id="noJobs" style="display:none;">No jobs found. Try another keyword.</p>
+    <p class="credit">Jobs powered by <a href="https://www.adzuna.co.za" target="_blank" rel="noopener">Adzuna</a></p>
   </main>
 
   <footer class="site-footer">
     <a class="footer-brand" href="/">SA NEWS <span>HUB.</span></a>
-    <p>Independent news project · © 2026 SA News Hub · Jobs by Adzuna · Weather by Open-Meteo</p>
-    <p><a href="/contact/">Contact</a></p>
+    <p>Independent news project · © 2026 SA News Hub</p>
   </footer>
 
-<script>
-  // --- USE SAME ADZUNA KEYS AS JOBS PAGE ---
-  const APP_ID = "YOUR_APP_ID_HERE";
-  const APP_KEY = "YOUR_APP_KEY_HERE";
-
-  // 1. LIVE NEWS - Google News ZA via rss2json (no key needed)
-  async function loadNews() {
-    try {
-      const res = await fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://news.google.com/rss/search?q=South%20Africa&hl=en-ZA&gl=ZA&ceid=ZA:en"));
-      const data = await res.json();
-      const items = (data.items || []).slice(0, 6);
-      document.getElementById("newsStatus").textContent = "";
-      document.getElementById("newsGrid").innerHTML = items.map(n => `
-        <article class="news-card">
-          <img src="${n.thumbnail || ""}" alt="" onerror="this.style.display='none'" />
-          <div><small>${new Date(n.pubDate).toLocaleDateString("en-ZA")} • ${n.author || "Google News"}</small>
-          <h3><a href="${n.link}" target="_blank" rel="noopener">${n.title}</a></h3>
-          <p>${(n.description || "").replace(/<[^>]*>/g,"").slice(0,130)}...</p>
-          <a href="${n.link}" target="_blank" rel="noopener">Read Full Story →</a></div>
-        </article>`).join("");
-    } catch(e) { document.getElementById("newsStatus").textContent = "Could not load news. Please refresh."; }
-  }
-
-  // 2. LIVE JOBS - Adzuna
-  async function loadJobs() {
-    const q = document.getElementById("jobSearch").value || "";
+  <script>
+    const APP_ID = "897de7b4";
+    const APP_KEY = "8625a7661b6f67374d01e3fedb62fefb";
     const list = document.getElementById("jobList");
     const status = document.getElementById("jobStatus");
-    status.textContent = "Loading live jobs...";
-    list.innerHTML = "";
-    try {
-      const res = await fetch(`https://api.adzuna.com/v1/api/jobs/za/search/1?app_id=${APP_ID}&app_key=${APP_KEY}&results_per_page=6&what=${encodeURIComponent(q)}&sort_by=date`);
-      const data = await res.json();
-      if (!data.results || data.results.length === 0) { status.textContent = "No live jobs found. Try another keyword."; return; }
-      status.textContent = "";
-      list.innerHTML = data.results.map(j => `
-        <article class="job-card">
-          <span class="pill">${j.location?.display_name || "South Africa"}</span>
-          <h3>${j.title}</h3>
-          <p><strong>${j.company?.display_name || ""}</strong></p>
-          <small>${j.created ? new Date(j.created).toLocaleDateString("en-ZA") : ""}</small>
-          <a class="apply" href="${j.redirect_url}" target="_blank" rel="noopener">Apply on Official Site →</a>
-        </article>`).join("");
-    } catch(e) { status.textContent = "Could not load jobs. Check your Adzuna keys."; }
-  }
-
-  // 3. LIVE WEATHER - Open-Meteo (no key)
-  async function loadWeather() {
-    const cities = [
-      { name: "East London", lat: -33.0153, lon: 27.9116 },
-      { name: "Johannesburg", lat: -26.2041, lon: 28.0473 },
-      { name: "Cape Town", lat: -33.9249, lon: 18.4241 },
-      { name: "Durban", lat: -29.8587, lon: 31.0218 },
-    ];
-    try {
-      const html = await Promise.all(cities.map(async c => {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`);
-        const d = await r.json();
-        return `<div class="weather-card"><h3>${c.name}</h3><div class="temp">${Math.round(d.current.temperature_2m)}°C</div><p>Wind ${Math.round(d.current.wind_speed_10m)} km/h • Humidity ${d.current.relative_humidity_2m}%</p><small>Live • Open-Meteo</small></div>`;
-      }));
-      document.getElementById("weatherGrid").innerHTML = html.join("");
-    } catch(e) { document.getElementById("weatherGrid").textContent = "Weather unavailable right now."; }
-  }
-
-  // 4. LIVE MARKETS - USD/ZAR
-  async function loadMarkets() {
-    try {
-      const r = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=ZAR,EUR,GBP");
-      const d = await r.json();
-      document.getElementById("marketBar").innerHTML = `USD/ZAR <b>R${d.rates.ZAR.toFixed(2)}</b> &nbsp;•&nbsp; EUR/USD <b>${(1/d.rates.EUR).toFixed(2)}</b> &nbsp;•&nbsp; GBP/USD <b>${(1/d.rates.GBP).toFixed(2)}</b> &nbsp;•&nbsp; <span class="live-dot">LIVE</span>`;
-    } catch(e) { document.getElementById("marketBar").textContent = "Markets unavailable"; }
-  }
-
-  document.getElementById("jobBtn").addEventListener("click", loadJobs);
-  loadNews(); loadJobs(); loadWeather(); loadMarkets();
-</script>
+    const noEl = document.getElementById("noJobs");
+    async function loadJobs() {
+      const q = document.getElementById("jobSearch").value || "";
+      const loc = document.getElementById("jobLocation").value || "";
+      status.textContent = "Loading live jobs...";
+      list.innerHTML = "";
+      noEl.style.display = "none";
+      const url = `https://api.adzuna.com/v1/api/jobs/za/search/1?app_id=${APP_ID}&app_key=${APP_KEY}&results_per_page=30&what=${encodeURIComponent(q)}&where=${encodeURIComponent(loc)}&sort_by=date`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.results || data.results.length === 0) { status.textContent = ""; noEl.style.display = "block"; return; }
+        status.textContent = `Showing ${data.results.length} live jobs - updated just now`;
+        list.innerHTML = data.results.map(j => `
+          <article class="job-card">
+            <span class="pill">${j.location?.display_name || "South Africa"}</span>
+            <h3>${j.title}</h3>
+            <p><strong>${j.company?.display_name || "Company"}</strong></p>
+            <small>${j.created ? new Date(j.created).toLocaleDateString("en-ZA") : ""} • ${j.category?.label || ""}</small>
+            <p class="desc">${(j.description || "").slice(0, 140)}...</p>
+            <a class="apply" href="${j.redirect_url}" target="_blank" rel="noopener">Apply on Official Site →</a>
+          </article>`).join("");
+      } catch (e) { status.textContent = "Could not load live jobs right now. Please try again in a minute."; }
+    }
+    document.getElementById("searchBtn").addEventListener("click", loadJobs);
+    document.getElementById("jobSearch").addEventListener("keydown", e => { if(e.key === "Enter") loadJobs(); });
+    document.getElementById("jobLocation").addEventListener("change", loadJobs);
+    loadJobs();
+  </script>
 </body>
 </html>
 
 <style>
-  *{box-sizing:border-box} body{margin:0;background:#f3f5f9;color:#172238;font-family:Arial,Helvetica,sans-serif}
-  .site-header{background:#101a2d;color:#fff}.header-inner{max-width:1160px;margin:0 auto;padding:24px 24px 0}
-  .brand,.footer-brand{color:#fff;font-size:25px;font-weight:900;letter-spacing:1px;text-decoration:none}.brand span,.footer-brand span{color:#ffc66d}
-  .tagline{margin:8px 0 23px;color:#aebbd0;font-size:10px;letter-spacing:2px}
-  nav{display:flex;flex-wrap:wrap;gap:0 23px;border-top:1px solid #ffffff20} nav a{padding:16px 0;color:#dce4f0;font-size:12px;text-decoration:none}
-  main{max-width:1160px;margin:0 auto;padding:30px 24px 55px}
-  .eyebrow{margin:0 0 10px;color:#a66a13;font-size:10px;font-weight:800;letter-spacing:2px}
-  h1{margin:0;font-size:42px;line-height:1.05;letter-spacing:-1px} .hero-sub{color:#5a6a80;max-width:620px;line-height:1.6}
-  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.btn-dark{background:#101a2d;color:#fff;padding:13px 20px;border-radius:8px;text-decoration:none;font-weight:800;font-size:14px;border:none;cursor:pointer}.btn-light{background:#fff;color:#101a2d;padding:13px 20px;border-radius:8px;text-decoration:none;font-weight:800;font-size:14px;border:1px solid #d8dee9}.btn-dark.small{padding:13px 18px}
-  .market-bar{background:#101a2d;color:#fff;padding:14px 16px;border-radius:10px;margin-top:22px;font-size:13px}.live-dot{color:#4ade80;font-weight:900}
-  section{margin-top:44px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.section-head h2{margin:0;font-size:24px}.section-head a,.news-card a,.about-box a{color:#176447;font-weight:800;text-decoration:none}.muted{color:#5a6a80;font-size:14px}.credit{font-size:12px;color:#5a6a80}
-  .news-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.news-card{background:#fff;border:1px solid #e1e6ef;border-radius:10px;padding:16px;display:flex;gap:14px}.news-card img{width:110px;height:90px;object-fit:cover;border-radius:8px}.news-card h3{margin:8px 0 6px;font-size:16px;line-height:1.35}.news-card h3 a{color:#172238}.news-card p{margin:0 0 8px;color:#5a6a80;font-size:13px;line-height:1.5}.news-card small{color:#8a99ad;font-size:11px}
-  .filter-box{display:flex;gap:10px;margin:14px 0}.filter-box input{flex:1;padding:13px;border:1px solid #d8dee9;border-radius:8px}
-  .job-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.job-card{background:#fff;border:1px solid #e1e6ef;border-radius:10px;padding:20px}.job-card h3{margin:10px 0 6px;font-size:17px}.pill{background:#fff3d6;color:#a66a13;padding:5px 8px;border-radius:4px;font-size:10px;font-weight:900}.apply{display:block;margin-top:10px;color:#176447;font-weight:800;text-decoration:none}
-  .weather-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.weather-card{background:#101a2d;color:#fff;border-radius:12px;padding:20px}.weather-card h3{margin:0}.temp{font-size:34px;font-weight:900;margin:12px 0 6px}.weather-card p{color:#aebbd0;font-size:13px}.weather-card small{color:#7d8da3}
-  .about-box{background:#fff;border:1px solid #e1e6ef;border-radius:12px;padding:24px}.about-box p{color:#5a6a80;line-height:1.7}
-  .site-footer{background:#101a2d;color:#aebbd0;padding:32px 24px;text-align:center}.site-footer a{color:#dce4f0}
-  @media(max-width:850px){.news-grid,.job-grid{grid-template-columns:1fr 1fr}.weather-grid{grid-template-columns:1fr 1fr} h1{font-size:32px}}
-  @media(max-width:520px){.news-grid,.job-grid,.weather-grid{grid-template-columns:1fr} main{padding:20px 16px 40px} .news-card{flex-direction:column} .news-card img{width:100%;height:160px}}
+    * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f5f9; color: #172238; font-family: Arial, Helvetica, sans-serif; }
+  .site-header { background: #101a2d; color: #fff; }
+  .header-inner { max-width: 1160px; margin: 0 auto; padding: 24px 24px 0; }
+  .brand, .footer-brand { color: #fff; font-size: 25px; font-weight: 900; letter-spacing: 1px; text-decoration: none; }
+  .brand span, .footer-brand span { color: #ffc66d; }
+  .tagline { margin: 8px 0 23px; color: #aebbd0; font-size: 10px; letter-spacing: 2px; }
+  nav { display: flex; flex-wrap: wrap; gap: 0 23px; border-top: 1px solid #ffffff20; }
+  nav a { padding: 16px 0; color: #dce4f0; font-size: 12px; text-decoration: none; }
+  main { max-width: 1160px; margin: 0 auto; padding: 30px 24px 55px; }
+  .eyebrow { margin: 0 0 10px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+  h1 { margin: 0; font-size: 34px; letter-spacing: -1px; }
+  .sub { color: #5a6a80; }
+  .filter-box { display: flex; gap: 10px; flex-wrap: wrap; margin: 22px 0; }
+  .filter-box input, .filter-box select { flex: 1; min-width: 200px; padding: 13px 14px; border: 1px solid #d8dee9; border-radius: 8px; font-size: 14px; background: #fff; }
+  .search-btn { background: #101a2d; color: #fff; border: none; padding: 13px 22px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+  .job-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .job-card { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 20px; }
+  .job-card h3 { margin: 10px 0 8px; font-size: 18px; line-height: 1.3; }
+  .job-card p { margin: 0 0 6px; font-size: 14px; }
+  .job-card small { color: #5a6a80; }
+  .desc { color: #5a6a80; font-size: 13px; line-height: 1.5; margin-top: 8px !important; }
+  .pill { background: #fff3d6; color: #a66a13; padding: 5px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+  .apply { display: block; margin-top: 12px; color: #176447; font-weight: 800; text-decoration: none; }
+  .credit { margin-top: 20px; font-size: 12px; color: #5a6a80; }
+  .site-footer { background: #101a2d; color: #aebbd0; padding: 32px 24px; text-align: center; }
+  @media (max-width: 850px) { .job-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .job-grid { grid-template-columns: 1fr; } main { padding: 20px 16px 40px; } }
 </style>
