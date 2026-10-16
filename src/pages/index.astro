@@ -1,15 +1,11 @@
 ---
 import "../styles/page-themes.css";
 const sections = [
-  { name: "South Africa", url: "/south-africa/", number: "01", label: "SA NEWS", description: "The stories shaping our nation." },
-  { name: "World", url: "/world/", number: "02", label: "GLOBAL", description: "Important developments from around the world." },
-  { name: "Politics", url: "/politics/", number: "03", label: "POLITICS", description: "Elections, parliament, government and policy." },
-  { name: "Markets & Forex", url: "/markets-forex/", number: "04", label: "MARKETS", description: "Currencies, financial markets and money." },
-  { name: "Sport", url: "/sport/", number: "05", label: "SPORT", description: "Teams, results and sporting highlights." },
-  { name: "Technology", url: "/technology/", number: "06", label: "TECH", description: "New ideas, innovation and digital trends." },
-  { name: "Jobs", url: "/jobs/", number: "07", label: "JOBS", description: "Where companies and government are hiring in SA." },
-  { name: "Weather", url: "/weather/", number: "08", label: "WEATHER", description: "Weather for every town and city in South Africa." },
-  { name: "Economic Calendar", url: "/economic-calendar/", number: "09", label: "ECONOMY", description: "Economic events and indicators to watch." }
+  { name: "Weather", url: "/weather/", number: "01", label: "WEATHER", description: "Weather updates across South Africa." },
+  { name: "Jobs", url: "/jobs/", number: "02", label: "JOBS", description: "Explore job opportunities across the country." },
+  { name: "Politics", url: "/politics/", number: "03", label: "POLITICS", description: "Government, parliament and public policy." },
+  { name: "Technology", url: "/technology/", number: "04", label: "TECHNOLOGY", description: "Digital news, science and innovation." },
+  { name: "World", url: "/world/", number: "05", label: "WORLD", description: "Major developments from around the globe." }
 ];
 ---
 
@@ -25,7 +21,7 @@ const sections = [
 <body data-page-theme="home">
 <header class="site-header">
   <div class="header-inner">
-    <a class="brand" href="/" aria-label="SA News Hubs home"><span class="brand-mark" aria-hidden="true">📍</span> SA News Hubs</a>
+    <a class="brand" href="/" aria-label="SA News Hubs home">SA News Hubs</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Open navigation">☰</button>
     <nav id="main-nav" aria-label="Main navigation">
       <a class="active" href="/">Home</a>
@@ -38,89 +34,30 @@ const sections = [
   </div>
 </header>
 
-<main>
-  <!-- 1. HERO -->
-  <section class="design6-hero">
-    <div class="d6-hero-wrap">
-      <div class="d6-hero-image" role="img" aria-label="South African community gathering"></div>
-      <div class="d6-hero-text">
-        <h1>News and Jobs That Change Lives</h1>
-        <p class="d6-hero-sub">Your trusted source for the latest South African news and career opportunities—empowering communities, creating futures.</p>
-        <div class="d6-hero-btns">
-          <a href="#sections" class="d6-btn-gold"><span aria-hidden="true">▤</span> Read News</a>
-          <a href="/jobs/" class="d6-btn-outline"><span aria-hidden="true">▣</span> Find Jobs</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. LATEST NEWS -->
-  <section class="section-heading" id="sections">
-    <div><p class="eyebrow">THE NEWSROOM</p><h2>Latest News</h2></div>
-    <a class="section-link" href="/south-africa/">All news →</a>
-  </section>
-  <section id="latestNewsGrid" class="latest-news-grid" aria-live="polite">
-    <p class="news-loading">Loading the latest headlines…</p>
-  </section>
-  <section class="section-heading category-heading">
-    <div><p class="eyebrow">EXPLORE THE NEWSROOM</p><h2>Browse by Category</h2></div>
-  </section>
-  <section class="news-grid">
-    {sections.map((section) => (
-      <a class="news-card" href={section.url}>
-        <div class="card-header"><span class="card-number">{section.number}</span><span class="card-label">{section.label}</span></div>
-        <div class="card-content"><h3>{section.name}</h3><p>{section.description}</p></div>
-        <div class="card-footer"><span>Explore →</span><span>↗</span></div>
-      </a>
-    ))}
-  </section>
-
-  <!-- 3. JOBS - LIVE ONLY -->
-  <section class="section-heading">
-    <div><p class="eyebrow">OPPORTUNITIES</p><h2>SA Jobs - Who Is Hiring?</h2></div>
-    <a class="section-link" href="/jobs/">All jobs →</a>
-  </section>
-  <section class="filter-box">
-    <input id="homeJobSearch" type="text" placeholder="Search live jobs, e.g. Cashier, Durban..." />
-    <button id="homeJobBtn" class="search-btn">Search Live Jobs</button>
-  </section>
-  <p id="homeJobStatus" style="color:#5a6a80;">Loading live jobs...</p>
-  <div id="homeJobList" class="mini-grid"></div>
-  <p id="homeNoJobs" style="display:none;">No live jobs found.</p>
-
-  <!-- 4. MARKETS + WEATHER - ONE ROW -->
-  <section class="split">
-    <div>
-      <section class="section-heading">
-        <div><p class="eyebrow">MONEY</p><h2>Markets & Forex</h2></div>
-        <a class="section-link" href="/markets-forex/">View all →</a>
-      </section>
-      <div class="stack">
-        <div class="mini-card"><strong>USD / ZAR</strong><p id="usdZar">Loading...</p><small>US Dollar to Rand</small></div>
-        <div class="mini-card"><strong>EUR / ZAR</strong><p id="eurZar">Loading...</p><small>Euro to Rand</small></div>
-        <div class="mini-card"><strong>GBP / ZAR</strong><p id="gbpZar">Loading...</p><small>Pound to Rand</small></div>
-      </div>
-    </div>
-    <div>
-      <section class="section-heading">
-        <div><p class="eyebrow">WEATHER</p><h2>Weather for SA</h2></div>
-        <a class="section-link" href="/weather/">Full weather →</a>
-      </section>
-      <div id="homeWeatherResult" class="weather-result">Loading East London weather...</div>
-      <div id="homeWeatherGrid" class="mini-grid-2" style="margin-top:14px;"></div>
-    </div>
-  </section>
-
-  <section class="closing-banner">
-    <div><p class="eyebrow">STAY INFORMED</p><h2>Good information<br />changes perspective.</h2></div>
-    <a class="closing-link" href="#sections">Discover our sections <span>→</span></a>
-  </section>
+<main class="home-main">
+  <section class="design6-hero"><div class="d6-hero-wrap"><div class="d6-hero-text">
+    <h1>News and Jobs That Change Lives</h1>
+    <p class="d6-hero-sub">Your trusted source for the latest South African news and career opportunities—empowering communities, creating futures.</p>
+    <div class="d6-hero-btns"><a href="#latestNews" class="d6-btn-gold">▤ &nbsp; Read News</a><a href="/jobs/" class="d6-btn-outline">▣ &nbsp; Find Jobs</a></div>
+  </div></div></section>
+  <div class="home-content">
+    <a class="breaking-strip" href="/south-africa/"><strong>♨ &nbsp; BREAKING NEWS</strong><span>Latest South African headlines and updates</span><b>›</b></a>
+    <nav class="category-tiles" aria-label="News categories">
+      <a href="/weather/"><span>🌦️</span><b>Weather</b></a><a href="/jobs/"><span>💼</span><b>Jobs</b></a><a href="/politics/"><span>🏛️</span><b>Politics</b></a><a href="/technology/"><span>🌐</span><b>Technology</b></a><a href="/world/"><span>🌍</span><b>World</b></a>
+    </nav>
+    <a class="featured-story" href="/south-africa/"><img src="https://images.unsplash.com/photo-1576485290814-1c72aa4bbb8e?auto=format&fit=crop&w=1000&q=85" alt="Cape Town and Table Mountain" loading="lazy"><div class="featured-copy"><span class="featured-label">FEATURED STORY</span><h2>South Africa: the stories shaping our future</h2><p>Catch up on major developments, public issues and opportunities affecting people across the country.</p><span class="read-more">Read More →</span></div></a>
+    <section id="latestNews" class="home-section"><div class="home-section-title"><h2>▤ &nbsp; Latest News</h2><a href="/south-africa/">View All News →</a></div><div id="latestNewsGrid" class="latest-news-grid" aria-live="polite"><p class="news-loading">Loading the latest headlines…</p></div></section>
+    <section class="home-section"><div class="home-section-title"><h2>▣ &nbsp; Latest Jobs</h2><a href="/jobs/">View All Jobs →</a></div><div class="filter-box"><input id="homeJobSearch" type="text" placeholder="Search jobs, e.g. administrator, East London..." /><button id="homeJobBtn" class="search-btn">Search</button></div><p id="homeJobStatus" class="home-job-status">Loading live jobs...</p><div id="homeJobList" class="mini-grid home-jobs-list"></div><p id="homeNoJobs" style="display:none;">No live jobs found.</p></section>
+    <section class="home-section"><div class="home-section-title"><h2>📈 &nbsp; Business &amp; Economy</h2><a href="/markets-forex/">Read More →</a></div><a class="economy-feature" href="/markets-forex/"><img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=700&q=80" alt="Financial market charts" loading="lazy"><div><h3>Markets, money and the South African economy</h3><p>Stay informed about financial markets, exchange rates and economic developments impacting South Africans.</p><span class="read-more">Explore Markets &amp; Forex →</span></div><span class="economy-arrow">View</span></a></section>
+    <section class="home-section useful-section"><div class="home-section-title"><h2>♧ &nbsp; Useful Information</h2></div><div class="useful-grid"><button class="weather-summary" type="button" onclick="document.getElementById('homeWeatherResult')?.scrollIntoView({behavior:'smooth',block:'center'})"><span>🌤️</span><div><b>East London</b><p id="weatherSummaryText">Weather update loading…</p></div></button><div class="useful-links"><a href="/weather/">🌦️ &nbsp; Weather Update <b>›</b></a><a href="/south-africa/">🏛️ &nbsp; Public Service News <b>›</b></a><a href="/economic-calendar/">◷ &nbsp; Economic Calendar <b>›</b></a></div></div><div class="weather-detail" id="homeWeatherResult">Loading East London weather...</div><div id="homeWeatherGrid" class="mini-grid-2" style="margin-top:10px;"></div><div class="market-mini"><b>Markets &amp; Forex</b><span>USD/ZAR <strong id="usdZar">Loading…</strong></span><span>EUR/ZAR <strong id="eurZar">Loading…</strong></span><span>GBP/ZAR <strong id="gbpZar">Loading…</strong></span></div></section>
+    <section class="newsletter-box"><div><h2>✉ &nbsp; Get the Latest News Updates</h2><p>Stay informed with the latest stories and important updates.</p></div><form id="newsletterForm"><input type="email" placeholder="Enter your email address" aria-label="Email address" required><button type="submit">Subscribe</button></form><p id="newsletterStatus" class="newsletter-status" aria-live="polite"></p></section>
+  </div>
 </main>
 
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-about">
-      <a class="footer-brand" href="/"><span class="brand-mark" aria-hidden="true">📍</span> SA News Hubs</a>
+      <a class="footer-brand" href="/">SA News Hubs</a>
       <p>Delivering trusted news and meaningful job opportunities to communities across South Africa.</p>
     </div>
     <div class="footer-column">
@@ -130,7 +67,6 @@ const sections = [
     <div class="footer-column">
       <h2>Contact</h2>
       <a href="mailto:hello@sanewshubs.co.za">✉ hello@sanewshubs.co.za</a>
-      <a href="tel:+27214005000">☎ +27 21 400 5000</a>
       <span>⌖ East London, Eastern Cape, South Africa</span>
     </div>
   </div>
@@ -200,7 +136,7 @@ const sections = [
     try{
       const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Africa/Johannesburg`);
       const d=await res.json();
-      document.getElementById("homeWeatherResult").innerHTML=`<strong>${name}</strong> - <span style="font-size:28px;">${Math.round(d.current.temperature_2m)}°C</span> ${wText(d.current.weather_code)} | Wind ${d.current.wind_speed_10m} km/h`;
+      document.getElementById("homeWeatherResult").innerHTML=`<strong>${name}</strong> - <span style="font-size:22px;">${Math.round(d.current.temperature_2m)}°C</span> ${wText(d.current.weather_code)} | Wind ${d.current.wind_speed_10m} km/h`; const summary=document.getElementById("weatherSummaryText"); if(summary) summary.textContent=`${Math.round(d.current.temperature_2m)}°C | ${wText(d.current.weather_code)}`;
     }catch(e){}
   }
   async function loadHomeGrid(){
@@ -219,124 +155,19 @@ const sections = [
   }
   loadHomeWeather("East London",-33.0153,27.9116);
   loadHomeGrid();
+  document.getElementById("newsletterForm")?.addEventListener("submit",e=>{e.preventDefault();document.getElementById("newsletterStatus").textContent="Newsletter sign-up is not connected yet.";});
 </script>
 </body>
 </html>
 
 <style>
-  :global(*) { box-sizing: border-box; }
-  :global(html) { scroll-behavior: smooth; }
-  :global(body) { margin: 0; background: #f4f6f9; color: #172238; font-family: Arial, Helvetica, sans-serif; }
-  .site-header { position: relative; z-index: 5; background: #071a35; color: #fff; border-bottom: 1px solid #ffffff20; }
-  .header-inner { max-width: 1440px; min-height: 88px; margin: 0 auto; padding: 18px 5.8%; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-  .brand,.footer-brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; font-size: clamp(23px,3.2vw,42px); font-weight: 900; letter-spacing: -.7px; text-decoration: none; white-space: nowrap; }
-  .brand-mark { color: #ffc54d; font-size: .9em; }
-  nav { display: flex; align-items: center; gap: clamp(12px,2.1vw,32px); }
-  nav a { position: relative; padding: 12px 0; color: #f2f5fa; font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  nav a:hover, nav a.active { color: #ffc54d; }
-  nav a.active::after { content: ""; position: absolute; bottom: 2px; left: 0; right: 0; height: 3px; background: #ffc54d; }
-  nav a.account-link { font-size: 25px; }
-  .menu-toggle { display: none; background: transparent; border: 1px solid #ffffff60; border-radius: 6px; color: #fff; padding: 8px 10px; font-size: 20px; }
-  main { max-width: none; margin: 0 auto; padding: 0 0 55px; }
-  .design6-hero { overflow: hidden; background: #071a35; border: 0; border-radius: 0; }
-  .d6-hero-wrap { position: relative; display: flex; align-items: center; min-height: 490px; padding: 56px 6%; background: linear-gradient(90deg,rgba(4,22,46,.98) 0%,rgba(4,22,46,.88) 28%,rgba(4,22,46,.4) 53%,rgba(4,22,46,.04) 100%), url("https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=2000&q=85") center 48%/cover no-repeat; }
-  .d6-hero-image { display: none; }
-  .d6-hero-text { position: relative; z-index: 1; max-width: 720px; padding: 0; display: flex; flex-direction: column; justify-content: center; color: #fff; }
-  .d6-hero-text h1 { max-width: 690px; margin: 0; color: #fff; font-size: clamp(36px,4.2vw,58px); font-weight: 900; letter-spacing: -1.6px; line-height: 1.08; }
-  .d6-hero-sub { max-width: 690px; margin: 20px 0 0; color: #f2f5fa; font-size: clamp(16px,1.6vw,21px); line-height: 1.5; }
-  .d6-hero-btns { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 26px; }
-  .d6-btn-gold,.d6-btn-outline { display: inline-flex; justify-content: center; align-items: center; gap: 12px; min-width: 220px; padding: 16px 22px; border-radius: 8px; text-decoration: none; font-size: 20px; font-weight: 800; }
-  .d6-btn-gold { background: #ffc54d; color: #071a35; border: 2px solid #ffc54d; }
-  .d6-btn-gold:hover { background: #ffd574; }
-  .d6-btn-outline { background: rgba(7,26,53,.42); color: #fff; border: 2px solid #fff; }
-  .d6-btn-outline:hover { background: rgba(255,255,255,.15); }
-  .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 44px auto 18px; max-width: 1240px; padding: 0 24px; }
-  .latest-news-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; max-width: 1192px; margin: 0 auto; padding: 0 24px; }
-  .latest-news-card { min-width: 0; overflow: hidden; background: #fff; border: 1px solid #e1e6ef; border-radius: 14px; box-shadow: 0 5px 18px #10213a0a; }
-  .featured-news-card { grid-column: span 2; }
-  .latest-news-image { position: relative; display: block; height: 190px; overflow: hidden; background: #dce3ec; }
-  .featured-news-card .latest-news-image { height: 260px; }
-  .latest-news-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .news-pill { position: absolute; top: 12px; left: 12px; padding: 6px 9px; border-radius: 5px; background: #ffc54d; color: #071a35; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
-  .latest-news-copy { padding: 18px; }
-  .latest-news-copy .eyebrow { margin-bottom: 8px; }
-  .latest-news-copy h3 { margin: 0 0 16px; font-size: 18px; line-height: 1.35; }
-  .latest-news-copy h3 a { color: #14223a; text-decoration: none; }
-  .latest-news-copy h3 a:hover { color: #a66a13; }
-  .read-story-link,.section-link { color: #145b48; font-weight: 800; text-decoration: none; }
-  .news-loading { grid-column: 1/-1; padding: 24px; background: #fff; border-radius: 12px; color: #53627a; }
-  .eyebrow { margin: 0 0 13px; color: #a66a13; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
-  .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #ffc66d; }
-  h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
-  h2 { margin: 0; font-size: clamp(25px, 4vw, 34px); letter-spacing: -1px; }
-  .hero-tag { display: inline-block; padding: 6px 10px; border-radius: 4px; background: #ffc66d; color: #172238; font-size: 10px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; }
-  .hero-tag.small { padding: 4px 7px; font-size: 9px; margin-bottom: 6px; }
-  .hero-small { display: flex; gap: 14px; align-items: center; background: #fff; border: 1px solid #e1e6ef; border-radius: 8px; padding: 12px; text-decoration: none; color: #172238; flex: 1; }
-  .hero-small img { width: 110px; height: 90px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-  .hero-small h3 { margin: 0; font-size: 16px; line-height: 1.3; }
-  .section-link { color: #176447; font-weight: 800; text-decoration: none; white-space: nowrap; }
-  .news-grid,.filter-box,#homeJobStatus,#homeJobList,#homeNoJobs,.split,.closing-banner { max-width: 1240px; margin-left: auto; margin-right: auto; }
-  .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 0 24px; }
-  .news-card { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 20px; text-decoration: none; color: #172238; display: flex; flex-direction: column; justify-content: space-between; }
-  .card-header { display: flex; justify-content: space-between; }
-  .card-number { font-weight: 900; color: #aebbd0; }
-  .card-label { font-size: 10px; font-weight: 900; letter-spacing: 1px; background: #fff3d6; color: #a66a13; padding: 5px 8px; border-radius: 4px; }
-  .card-content h3 { margin: 14px 0 8px; font-size: 18px; }
-  .card-content p { color: #5a6a80; font-size: 14px; line-height: 1.5; margin: 0; }
-  .card-footer { display: flex; justify-content: space-between; margin-top: 16px; font-size: 13px; font-weight: 800; color: #176447; }
-  .mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 24px; }
-  .mini-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mini-card { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 18px; }
-  .stack { display: flex; flex-direction: column; gap: 12px; }
-  .filter-box { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; margin-bottom: 14px; padding: 0 24px; }
-  .filter-box input { flex: 1; min-width: 200px; padding: 13px; border: 1px solid #d8dee9; border-radius: 8px; font-size: 14px; background: #fff; }
-  .search-btn { background: #101a2d; color: #fff; border: none; padding: 13px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; }
-  .weather-result { background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 18px; }
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 0 24px; }
-  .closing-banner { margin-top: 44px; background: #101a2d; color: #fff; border-radius: 12px; padding: 28px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .closing-banner h2 { color: #fff; }
-  .closing-link { color: #ffc66d; font-weight: 800; text-decoration: none; }
-  .site-footer { background: #071a35; color: #d8e1ef; padding: 36px 5.8% 20px; }
-  .footer-inner { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr .9fr 1fr; gap: 54px; }
-  .footer-brand { font-size: clamp(24px,2.7vw,36px); }
-  .footer-about p { max-width: 440px; margin: 12px 0 0; line-height: 1.5; color: #d8e1ef; }
-  .footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-  .footer-column h2 { margin: 0 0 8px; font-size: 20px; color: #fff; }
-  .footer-column a,.footer-column span { color: #d8e1ef; text-decoration: none; font-size: 15px; }
-  .footer-column a:hover,.footer-bottom a:hover { color: #ffc54d; }
-  .footer-bottom { max-width: 1260px; margin: 28px auto 0; padding-top: 14px; border-top: 1px solid #ffffff30; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; }
-  .footer-bottom a { color: #d8e1ef; text-decoration: none; }
-  .footer-links { display: flex; gap: 18px; justify-content: center; margin: 12px 0; }
-  .footer-top { display: inline-block; font-size: 13px; }
-  @media (max-width: 900px) {
-    .latest-news-grid { grid-template-columns: 1fr 1fr; }
-    .featured-news-card { grid-column: span 2; }
-    .header-inner { flex-wrap: wrap; min-height: 78px; }
-    .menu-toggle { display: block; }
-    nav { display: none; width: 100%; flex-wrap: wrap; gap: 8px 20px; padding: 8px 0 12px; }
-    nav.is-open { display: flex; }
-    .d6-hero-wrap { min-height: 440px; padding: 48px 5%; background-position: 58% center; }
-    .news-grid { grid-template-columns: 1fr 1fr; }
-    .mini-grid { grid-template-columns: 1fr 1fr; }
-    .split { grid-template-columns: 1fr; }
-    .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
-  }
-  @media (max-width: 520px) {
-    .latest-news-grid { grid-template-columns: 1fr; padding: 0 16px; gap: 14px; }
-    .featured-news-card { grid-column: auto; }
-    .latest-news-image,.featured-news-card .latest-news-image { height: 190px; }
-    .latest-news-copy { padding: 15px; }
-    .latest-news-copy h3 { font-size: 17px; }
-    .category-heading { margin-top: 30px; }
-    .header-inner { padding: 16px 18px; }
-    .brand { font-size: 24px; }
-    .d6-hero-wrap { min-height: 470px; padding: 38px 22px; background-image: linear-gradient(90deg,rgba(4,22,46,.95),rgba(4,22,46,.72)),url("https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1000&q=80"); background-position: center; }
-    .d6-hero-text h1 { font-size: 38px; }
-    .d6-hero-sub { font-size: 16px; }
-    .d6-btn-gold,.d6-btn-outline { min-width: 0; width: 100%; font-size: 18px; }
-    .news-grid,.mini-grid,.mini-grid-2 { grid-template-columns: 1fr; }
-    .section-heading { flex-direction: column; align-items: flex-start; margin-top: 34px; }
-    .footer-inner { grid-template-columns: 1fr; gap: 28px; }
-    .footer-bottom { flex-direction: column; align-items: flex-start; }
-  }
+:global(*){box-sizing:border-box}:global(html){scroll-behavior:smooth}:global(body){margin:0;background:#f5f7fb;color:#102542;font-family:Arial,Helvetica,sans-serif}
+.site-header{position:relative;z-index:5;background:#052344;color:#fff;border-bottom:1px solid #ffffff22}.header-inner{max-width:1180px;min-height:62px;margin:auto;padding:10px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand,.footer-brand{color:#fff;font-size:clamp(22px,2.5vw,31px);font-weight:900;letter-spacing:-.6px;text-decoration:none;white-space:nowrap}.brand-mark{display:none}nav#main-nav{display:flex;align-items:center;gap:clamp(12px,2vw,26px)}nav#main-nav a{padding:10px 0;color:#f2f5fa;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}nav#main-nav a:hover,nav#main-nav a.active{color:#ffc54d}nav#main-nav .account-link{font-size:22px}.menu-toggle{display:none;background:transparent;border:1px solid #ffffff60;border-radius:6px;color:#fff;padding:7px 10px;font-size:20px}
+.home-main{padding:0 0 28px}.design6-hero{overflow:hidden;background:#052344}.d6-hero-wrap{position:relative;display:flex;align-items:center;min-height:330px;padding:36px max(22px,calc((100% - 1120px)/2));background:linear-gradient(90deg,rgba(3,27,54,.96) 0%,rgba(3,27,54,.78) 45%,rgba(3,27,54,.12) 100%),url("https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1800&q=85") center 48%/cover no-repeat}.d6-hero-text{position:relative;z-index:1;max-width:590px;color:white}.d6-hero-text h1{max-width:540px;margin:0;color:#fff;font-size:clamp(34px,4vw,49px);font-weight:900;letter-spacing:-1px;line-height:1.06}.d6-hero-sub{max-width:510px;margin:12px 0 0;color:#f2f5fa;font-size:16px;line-height:1.4}.d6-hero-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.d6-btn-gold,.d6-btn-outline{display:inline-flex;justify-content:center;align-items:center;gap:8px;min-width:145px;padding:11px 16px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:800}.d6-btn-gold{background:#ffc51d;color:#062243;border:2px solid #ffc51d}.d6-btn-outline{background:#05234488;color:#fff;border:2px solid #fff}
+.home-content{max-width:1000px;margin:0 auto;padding:0 16px}.breaking-strip{display:flex;align-items:center;gap:14px;margin:12px 0;background:#fff0f0;border-radius:6px;overflow:hidden;color:#142747;text-decoration:none;min-height:42px}.breaking-strip strong{display:block;align-self:stretch;padding:13px 14px;background:#df2432;color:#fff;font-size:12px;white-space:nowrap}.breaking-strip span{font-size:13px;font-weight:700;flex:1}.breaking-strip>b{padding:0 14px;font-size:24px;color:#34516f}.category-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.category-tiles a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:10px 5px;background:#edf3fb;border-radius:8px;color:#102542;text-decoration:none;text-align:center}.category-tiles a span{font-size:23px}.category-tiles a b{font-size:12px;line-height:1.2}.category-tiles a:hover{background:#dfeafa}.featured-story{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;margin:12px 0 20px;padding:10px;background:#edf4fc;border-radius:8px;text-decoration:none;color:#102542}.featured-story>img{width:100%;height:175px;object-fit:cover;border-radius:6px}.featured-copy{padding:8px 8px 8px 0}.featured-label{display:inline-block;padding:5px 8px;border-radius:4px;background:#ffd21f;color:#152b49;font-size:10px;font-weight:900}.featured-copy h2{margin:9px 0;font-size:21px;line-height:1.2}.featured-copy p{margin:0 0 10px;color:#4a5c73;font-size:13px;line-height:1.45}.read-more{color:#0755a3;font-size:13px;font-weight:800}.home-section{margin:20px 0}.home-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 9px}.home-section-title h2{margin:0;font-size:19px;letter-spacing:-.3px}.home-section-title>a{color:#0755a3;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap}
+.latest-news-grid{display:flex;flex-direction:column;gap:0;border:1px solid #e3e9f2;border-radius:8px;background:#fff;overflow:hidden}.latest-news-card{display:grid;grid-template-columns:125px minmax(0,1fr) 22px;gap:12px;align-items:center;min-width:0;padding:8px;border-bottom:1px solid #e8edf4;background:#fff}.latest-news-card:last-child{border-bottom:0}.latest-news-image{position:relative;display:block;height:72px;overflow:hidden;background:#dce3ec;border-radius:5px}.latest-news-image img{display:block;width:100%;height:100%;object-fit:cover}.news-pill{position:absolute;top:5px;left:5px;padding:3px 5px;border-radius:3px;background:#1470c7;color:white;font-size:8px;font-weight:900}.latest-news-copy{padding:0;min-width:0}.latest-news-copy .eyebrow{display:none}.latest-news-copy h3{margin:0;font-size:13px;line-height:1.28}.latest-news-copy h3 a{color:#102542;text-decoration:none}.latest-news-copy h3 a:hover{color:#0755a3}.latest-news-copy .read-story-link{display:none}.story-chevron{color:#294c75;text-decoration:none;font-size:25px;font-weight:700;text-align:center}.news-loading{padding:20px;color:#53627a}.eyebrow{margin:0 0 8px;color:#a66a13;font-size:10px;font-weight:800;letter-spacing:1px}
+.filter-box{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}.filter-box input{flex:1;min-width:160px;padding:10px 12px;border:1px solid #d8dee9;border-radius:6px;font-size:13px;background:#fff}.search-btn{background:#052344;color:#fff;border:0;padding:10px 16px;border-radius:6px;font-weight:800;cursor:pointer}.home-job-status{margin:5px 0;color:#64758b;font-size:12px}.home-jobs-list{display:flex;flex-direction:column;gap:0;padding:0;border:1px solid #e3e9f2;border-radius:8px;background:#fff;overflow:hidden}.home-jobs-list .mini-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:5px 12px;padding:12px 14px;border:0;border-bottom:1px solid #e8edf4;border-radius:0;background:#fff}.home-jobs-list .mini-card strong{font-size:13px}.home-jobs-list .mini-card p{grid-column:1;margin:0;color:#52647a;font-size:11px}.home-jobs-list .mini-card small{grid-column:1;color:#687991;font-size:10px}.home-jobs-list .mini-card a{grid-column:2;grid-row:1/4;align-self:center;background:#052344;color:#fff!important;border-radius:5px;padding:9px 13px;text-decoration:none}.economy-feature{display:grid;grid-template-columns:120px minmax(0,1fr) auto;align-items:center;gap:12px;padding:9px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;text-decoration:none;color:#102542}.economy-feature img{width:120px;height:85px;object-fit:cover;border-radius:5px}.economy-feature h3{margin:0 0 5px;font-size:14px}.economy-feature p{margin:0 0 5px;color:#52647a;font-size:11px;line-height:1.4}.economy-arrow{background:#052344;color:#fff;border-radius:5px;padding:8px 12px;font-size:11px}.useful-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.weather-summary{display:flex;align-items:center;gap:12px;text-align:left;padding:14px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;color:#102542;cursor:pointer}.weather-summary>span{font-size:28px}.weather-summary b{font-size:13px}.weather-summary p{margin:5px 0 0;color:#53647a;font-size:11px}.useful-links{display:flex;flex-direction:column;background:#fff;border:1px solid #e3e9f2;border-radius:8px;overflow:hidden}.useful-links a{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;color:#334c6b;text-decoration:none;font-size:11px;border-bottom:1px solid #e8edf4}.useful-links a:last-child{border-bottom:0}.useful-links b{font-size:18px}.weather-detail{margin-top:10px;padding:12px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;font-size:13px}.mini-grid-2{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.mini-grid-2 .mini-card{padding:9px;background:#fff;border:1px solid #e3e9f2;border-radius:7px}.mini-grid-2 strong{font-size:11px}.mini-grid-2 p{margin:5px 0;font-size:17px}.mini-grid-2 small{font-size:10px;color:#64758b}.market-mini{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;padding:11px 13px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;font-size:11px}.market-mini>b{font-size:12px;margin-right:auto}.newsletter-box{margin:22px 0 0;padding:17px;background:#e8f2ff;border-radius:8px}.newsletter-box h2{margin:0;font-size:17px}.newsletter-box p{margin:5px 0;color:#4e627c;font-size:11px}.newsletter-box form{display:flex;gap:8px;margin-top:10px}.newsletter-box input{flex:1;min-width:0;padding:10px;border:1px solid #d7e1ee;border-radius:5px;font-size:12px}.newsletter-box button{padding:10px 18px;background:#ffc51d;border:0;border-radius:5px;color:#142747;font-size:12px;font-weight:900}.newsletter-status{width:100%}
+.site-footer{background:#052344;color:#d8e1ef;padding:25px 20px 14px}.footer-inner{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1.5fr .8fr 1fr;gap:35px}.footer-brand{font-size:20px}.footer-about p{max-width:310px;margin:9px 0 0;line-height:1.45;color:#d8e1ef;font-size:11px}.footer-column{display:flex;flex-direction:column;align-items:flex-start;gap:5px}.footer-column h2{margin:0 0 5px;font-size:13px;color:#fff}.footer-column a,.footer-column span{color:#d8e1ef;text-decoration:none;font-size:11px;overflow-wrap:anywhere}.footer-bottom{max-width:1000px;margin:18px auto 0;padding-top:12px;border-top:1px solid #ffffff30;display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;font-size:10px}.footer-bottom a{color:#d8e1ef;text-decoration:none}.footer-top{display:none}
+@media(max-width:700px){.header-inner{min-height:48px;padding:8px 16px;gap:10px}.brand{font-size:21px}.menu-toggle{display:block;padding:5px 9px}nav#main-nav{display:none;width:100%;flex-wrap:wrap;gap:7px 18px;padding:6px 0 10px}nav#main-nav.is-open{display:flex}.header-inner:has(nav.is-open){flex-wrap:wrap}.d6-hero-wrap{min-height:203px;padding:22px 17px;background-image:linear-gradient(90deg,rgba(3,27,54,.96),rgba(3,27,54,.76) 62%,rgba(3,27,54,.25)),url("https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1000&q=80");background-position:center}.d6-hero-text{max-width:310px}.d6-hero-text h1{font-size:24px;letter-spacing:-.4px}.d6-hero-sub{font-size:12px;line-height:1.3;margin-top:7px}.d6-hero-btns{gap:7px;margin-top:10px}.d6-btn-gold,.d6-btn-outline{min-width:0;padding:8px 10px;font-size:11px;border-radius:5px}.home-content{padding:0 9px}.breaking-strip{margin:8px 0;gap:7px;min-height:35px}.breaking-strip strong{padding:10px 8px;font-size:9px}.breaking-strip span{font-size:10px;line-height:1.25}.breaking-strip>b{padding:0 8px}.category-tiles{gap:5px;margin:8px 0}.category-tiles a{min-height:62px;padding:7px 2px;gap:4px;border-radius:6px}.category-tiles a span{font-size:18px}.category-tiles a b{font-size:9px}.featured-story{grid-template-columns:1fr;gap:8px;padding:7px;margin:8px 0 16px}.featured-story>img{height:145px}.featured-copy{padding:2px 5px 7px}.featured-copy h2{font-size:17px;margin:6px 0}.featured-copy p{font-size:11px;margin-bottom:6px}.featured-label{font-size:9px}.home-section{margin:17px 0}.home-section-title{margin-bottom:7px}.home-section-title h2{font-size:15px}.home-section-title>a{font-size:10px}.latest-news-card{grid-template-columns:96px minmax(0,1fr) 14px;gap:8px;padding:6px}.latest-news-image{height:65px}.latest-news-copy h3{font-size:11px}.story-chevron{font-size:20px}.news-pill{font-size:7px}.filter-box input{font-size:11px;padding:9px}.search-btn{padding:9px 12px;font-size:11px}.home-jobs-list .mini-card{padding:10px;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px}.home-jobs-list .mini-card strong{font-size:11px}.home-jobs-list .mini-card p,.home-jobs-list .mini-card small{font-size:9px}.home-jobs-list .mini-card a{font-size:9px;padding:8px}.economy-feature{grid-template-columns:94px minmax(0,1fr);gap:9px;padding:7px}.economy-feature img{width:94px;height:78px}.economy-feature h3{font-size:11px}.economy-feature p{font-size:9px}.economy-feature .read-more{font-size:10px}.economy-arrow{display:none}.useful-grid{grid-template-columns:1fr 1fr;gap:7px}.weather-summary{gap:7px;padding:9px}.weather-summary>span{font-size:21px}.weather-summary b{font-size:10px}.weather-summary p{font-size:9px}.useful-links a{padding:8px;font-size:9px}.mini-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.market-mini{gap:8px;padding:9px;font-size:9px}.market-mini>b{width:100%}.newsletter-box{padding:12px;margin-top:16px}.newsletter-box h2{font-size:14px}.newsletter-box p{font-size:10px}.newsletter-box form{gap:6px}.newsletter-box input{padding:8px;font-size:10px}.newsletter-box button{padding:8px 10px;font-size:10px}.footer-inner{grid-template-columns:1.2fr .8fr;gap:20px}.footer-about{grid-column:1/-1}.footer-brand{font-size:18px}.footer-column h2{font-size:12px}.footer-column a,.footer-column span,.footer-about p{font-size:10px}.footer-bottom{font-size:9px;gap:6px}}
+@media(min-width:701px) and (max-width:980px){.home-content{padding:0 18px}.d6-hero-wrap{padding:35px 25px}.featured-story>img{height:155px}}
 </style>
