@@ -80,7 +80,7 @@ async function autoPublishStory({ title, category, summary, sourceUrl, publisher
     throw new Error("Draft failed basic content validation");
   }
 
-  const apiUrl = "https://api.github.com/repos/" + repo + "/contents/src/data/news.js";
+  const apiUrl = "https://api.github.com/repos/" + repo + "/contents/src/src/data/news.js";
   const headers = {
     Authorization: "Bearer " + token,
     Accept: "application/vnd.github+json",
@@ -135,7 +135,7 @@ async function autoPublishStory({ title, category, summary, sourceUrl, publisher
 function issueExists(url) {
   try {
     const output = execFileSync("gh", [
-      "issue", "list", "--repo", repo, "--state", "all",
+      "issue", "list", "--repo", repo, "--state", "open",
       "--search", `"${url}" in:body`, "--json", "number", "--limit", "1"
     ], { encoding: "utf8" });
     return JSON.parse(output).length > 0;
@@ -211,8 +211,6 @@ for (const feed of feeds) {
       const title = cleanText(item.title, 250);
       const url = cleanText(item.link, 1000);
       if (!title || !url || !/^https?:\/\//i.test(url)) continue;
-      if (issueExists(url)) continue;
-
       const published = item.isoDate || item.pubDate || "Date not supplied by source";
       const feedSummary = cleanText(item.contentSnippet || item.summary || "Open the original source to review the full report.", 450);
       const publisher = publisherFromTitle(title);
@@ -258,6 +256,8 @@ for (const feed of feeds) {
           draftStatus = "Held for review: automatic publishing checks could not be completed.";
         }
       }
+
+      if (issueExists(url)) continue;
 
       const body = [
         "## Pending editorial review",
