@@ -10,6 +10,7 @@ for (const key of required) {
 const feeds = [
   { category: "South Africa", url: "https://news.google.com/rss/search?q=South+Africa+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
   { category: "World", url: "https://news.google.com/rss/search?q=world+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
+  { category: "Politics", url: "https://news.google.com/rss/search?q=South+Africa+politics+parliament+government&hl=en-ZA&gl=ZA&ceid=ZA:en" },
   { category: "Markets & Forex", url: "https://news.google.com/rss/search?q=South+Africa+markets+forex+economy&hl=en-ZA&gl=ZA&ceid=ZA:en" },
   { category: "Sport", url: "https://news.google.com/rss/search?q=South+Africa+sport&hl=en-ZA&gl=ZA&ceid=ZA:en" },
   { category: "Technology", url: "https://news.google.com/rss/search?q=technology+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
@@ -76,7 +77,7 @@ async function autoPublishStory({ title, category, summary, sourceUrl, publisher
   if (!token) throw new Error("GITHUB_TOKEN is missing");
   if (!title || title.length < 8 || title.length > 160 || title.includes("[") ||
       !summary || summary.length < 40 || summary.length > 900 ||
-      !["South Africa", "World", "Markets & Forex", "Sport", "Technology", "Economic Calendar"].includes(category)) {
+      !["South Africa", "World", "Politics", "Markets & Forex", "Sport", "Technology", "Economic Calendar"].includes(category)) {
     throw new Error("Draft failed basic content validation");
   }
 
