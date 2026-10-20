@@ -1,4 +1,4 @@
-name: Discover news and auto-publish checked stories
+name: Discover news and email editorial review queue
 
 on:
   schedule:
