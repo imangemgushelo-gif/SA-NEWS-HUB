@@ -1,6 +1,7 @@
 import Parser from "rss-parser";
 import nodemailer from "nodemailer";
 import { execFileSync } from "node:child_process";
+import { readFile, writeFile } from "node:fs/promises";
 
 const required = [
   "GMAIL_USER",
@@ -60,7 +61,22 @@ const transporter = nodemailer.createTransport({
 
 const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
+const autoPublishedStories = [];
 const aiConfigured = Boolean(process.env.GROQ_API_KEY);
+const newsFilePath = "src/src/data/news.js";
+const newsFileText = await readFile(newsFilePath, "utf8");
+const newsMatch = newsFileText.match(/export\\s+const\\s+news\\s*=\\s*(\\[[\\s\\S]*\\])\\s*;?/);
+if (!newsMatch) throw new Error("Could not safely read src/src/data/news.js; refusing to publish.");
+let publishedStories = JSON.parse(newsMatch[1]);
+
+function slugify(value) {
+  return value.normalize("NFKD").toLowerCase()
+    .replace(/[^a-z0-9\\s-]/g, "")
+    .trim()
+    .replace(/[\\s-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70);
+}
 
 function issueExists(url) {
   try {
@@ -173,15 +189,13 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       }
     }
 
-    const summary =
+    const publisherDescription =
       metaContent(html, "og:description") ||
       metaContent(html, "description") ||
-      metaContent(html, "twitter:description") ||
-      fallbackSummary;
-
-    const publisher =
-      metaContent(html, "og:site_name") ||
-      fallbackPublisher;
+      metaContent(html, "twitter:description");
+    const verifiedPublisherName = metaContent(html, "og:site_name");
+    const summary = publisherDescription || fallbackSummary;
+    const publisher = verifiedPublisherName || fallbackPublisher;
 
     console.log(
       `Source metadata: resolved ${feedUrl} to ${canonicalUrl || finalUrl.toString()}; description ${summary.length >= 80 ? "available" : "short/unavailable"}.`
@@ -190,14 +204,18 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
     return {
       url: canonicalUrl || finalUrl.toString(),
       summary: cleanText(summary, 450),
-      publisher: cleanText(publisher, 120)
+      publisher: cleanText(publisher, 120),
+      descriptionVerified: Boolean(publisherDescription),
+      publisherVerified: Boolean(verifiedPublisherName)
     };
   } catch (error) {
     console.warn(`Could not enrich source metadata: ${error.message}`);
     return {
       url: feedUrl,
       summary: fallbackSummary,
-      publisher: fallbackPublisher
+      publisher: fallbackPublisher,
+      descriptionVerified: false,
+      publisherVerified: false
     };
   }
 }
@@ -439,6 +457,19 @@ for (const feed of feeds) {
       const url = enrichedSource.url;
       const feedSummary = enrichedSource.summary || feedSummaryFallback;
       const publisher = enrichedSource.publisher || publisherFallback;
+      const publishedDateMs = Date.parse(published);
+      let normalizedSourceUrl = "";
+      try {
+        const parsedSourceUrl = new URL(url);
+        if (parsedSourceUrl.protocol === "https:") normalizedSourceUrl = parsedSourceUrl.toString();
+      } catch {
+        // Invalid source URLs are held out of publication.
+      }
+      if (!normalizedSourceUrl) {
+        console.warn(`Skipping item without a valid HTTPS publisher URL: ${title}`);
+        continue;
+      }
+      if (publishedStories.some(story => story.sourceUrl === normalizedSourceUrl)) continue;
 
       let draft = null;
 
@@ -466,15 +497,44 @@ for (const feed of feeds) {
         }
       }
 
-      // RSS headlines and snippets are not independent verification.
-      // Keep every AI-generated story in the human editorial review queue.
-      // The separate /approve workflow is responsible for preparing a pull request.
-      if (draft) {
-        draftStatus =
-          "AI draft generated from the headline and available publisher metadata; held for human verification before publication.";
+      // Auto-publish only when a draft passed validation and the original publisher
+      // supplied its own description and site name. Uncertain stories stay in review.
+      const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
+      const isRecent =
+        Number.isFinite(publishedDateMs) &&
+        publishedDateMs <= Date.now() + 5 * 60 * 1000 &&
+        Date.now() - publishedDateMs <= 72 * 60 * 60 * 1000;
+      const safeForAutoPublish =
+        Boolean(draft) &&
+        enrichedSource.descriptionVerified &&
+        enrichedSource.publisherVerified &&
+        feedSummary.length >= 150 &&
+        publisher.length > 1 &&
+        isRecent &&
+        !sourceHost.endsWith("news.google.com");
+
+      if (safeForAutoPublish) {
+        let slug = slugify(draft.headline) || "news";
+        if (publishedStories.some(story => story.slug === slug) ||
+            autoPublishedStories.some(story => story.slug === slug)) {
+          slug = slug + "-" + Date.now().toString(36);
+        }
+        const story = {
+          slug,
+          title: draft.headline,
+          category: feed.category,
+          summary: draft.summary,
+          publisher,
+          sourceUrl: normalizedSourceUrl,
+          publishedAt: new Date(publishedDateMs).toISOString()
+        };
+        autoPublishedStories.push(story);
+        publishedStories.unshift(story);
+        console.log(`Eligible for automatic publication: [${feed.category}] ${draft.headline}`);
+        continue;
       }
 
-      if (issueExists(url)) {
+      if (issueExists(normalizedSourceUrl)) {
         continue;
       }
 
@@ -593,6 +653,17 @@ for (const feed of feeds) {
   }
 }
 
+if (autoPublishedStories.length) {
+  const updatedNewsFile = "export const news = " + JSON.stringify(publishedStories, null, 2) + ";\\n";
+  await writeFile(newsFilePath, updatedNewsFile, "utf8");
+  execFileSync("git", ["config", "user.name", "github-actions[bot]"]);
+  execFileSync("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
+  execFileSync("git", ["add", newsFilePath]);
+  execFileSync("git", ["commit", "-m", `Publish ${autoPublishedStories.length} verified news story/stories`]);
+  execFileSync("git", ["push", "origin", "HEAD:main"]);
+  console.log(`Published ${autoPublishedStories.length} story/stories to src/src/data/news.js.`);
+}
+
 if (newStories.length) {
   const reviewRows = newStories
     .map(story =>
@@ -624,11 +695,15 @@ if (newStories.length) {
       " stories held for editorial review",
 
     text:
-      "Stories held for editorial review:\n\n" +
+      (autoPublishedStories.length
+        ? "Automatically published after strict checks:\\n\\n" +
+          autoPublishedStories.map(story => "• " + story.title + "\\n  " + story.sourceUrl).join("\\n\\n") + "\\n\\n"
+        : "") +
+      "Stories held for editorial review:\\n\\n" +
       reviewRows +
-      "\nReview queue: https://github.com/" +
+      "\\nReview queue: https://github.com/" +
       repo +
-      "/issues\nLive site: https://sa-news-hub.pages.dev/\n\nAI-generated drafts from RSS snippets are never published automatically. A human must verify the original article, approve the review issue, and merge the resulting pull request."
+      "\\nLive site: https://sa-news-hub.pages.dev/\\n\\nOnly stories with a recent timestamp, direct HTTPS publisher page, publisher-provided description and site name, and a validated AI draft are auto-published."
   });
 
   console.log(
