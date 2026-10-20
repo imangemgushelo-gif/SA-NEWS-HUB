@@ -106,6 +106,102 @@ function cleanText(value, max = 900) {
     .slice(0, max);
 }
 
+function decodeHtml(value) {
+  return String(value || "")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)));
+}
+
+function htmlAttributes(tag) {
+  const attributes = {};
+  const pattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g;
+  let match;
+  while ((match = pattern.exec(tag))) {
+    attributes[match[1].toLowerCase()] = decodeHtml(match[2] ?? match[3] ?? match[4] ?? "");
+  }
+  return attributes;
+}
+
+function metaContent(html, wantedName) {
+  for (const tag of html.match(/<meta\b[^>]*>/gi) || []) {
+    const attributes = htmlAttributes(tag);
+    const key = (attributes.name || attributes.property || attributes.itemprop || "").toLowerCase();
+    if (key === wantedName.toLowerCase() && attributes.content) {
+      return cleanText(attributes.content, 900);
+    }
+  }
+  return "";
+}
+
+async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
+  try {
+    const response = await fetch(feedUrl, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": "SA-News-Hub/1.0 (news source metadata; contact site owner)"
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`source returned HTTP ${response.status}`);
+    }
+
+    const finalUrl = new URL(response.url || feedUrl);
+    if (finalUrl.protocol !== "https:") {
+      throw new Error("source did not resolve to HTTPS");
+    }
+
+    const html = (await response.text()).slice(0, 750000);
+    let canonicalUrl = "";
+
+    for (const tag of html.match(/<link\b[^>]*>/gi) || []) {
+      const attributes = htmlAttributes(tag);
+      if ((attributes.rel || "").toLowerCase().split(/\s+/).includes("canonical") && attributes.href) {
+        try {
+          const candidate = new URL(attributes.href, finalUrl);
+          if (candidate.protocol === "https:") canonicalUrl = candidate.toString();
+        } catch {
+          // Ignore malformed canonical URLs and keep the resolved source URL.
+        }
+        if (canonicalUrl) break;
+      }
+    }
+
+    const summary =
+      metaContent(html, "og:description") ||
+      metaContent(html, "description") ||
+      metaContent(html, "twitter:description") ||
+      fallbackSummary;
+
+    const publisher =
+      metaContent(html, "og:site_name") ||
+      fallbackPublisher;
+
+    console.log(
+      `Source metadata: resolved ${feedUrl} to ${canonicalUrl || finalUrl.toString()}; description ${summary.length >= 80 ? "available" : "short/unavailable"}.`
+    );
+
+    return {
+      url: canonicalUrl || finalUrl.toString(),
+      summary: cleanText(summary, 450),
+      publisher: cleanText(publisher, 120)
+    };
+  } catch (error) {
+    console.warn(`Could not enrich source metadata: ${error.message}`);
+    return {
+      url: feedUrl,
+      summary: fallbackSummary,
+      publisher: fallbackPublisher
+    };
+  }
+}
+
 async function createAiDraft({
   title,
   summary,
@@ -157,7 +253,7 @@ async function createAiDraft({
               content: [
                 "You prepare cautious, original draft copy for a South African news site.",
 
-                "Use ONLY the supplied RSS headline and snippet. You have not read the linked article. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
+                "Use ONLY the supplied headline and extracted publisher-provided page description/snippet. You have not independently verified the article body. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
 
                 "Write a neutral summary of 90–110 words in clear South African English, but only if the provided information genuinely supports that length without repetition or speculation.",
 
@@ -312,12 +408,12 @@ for (const feed of feeds) {
 
     for (const item of (parsed.items || []).slice(0, 5)) {
       const title = cleanText(item.title, 250);
-      const url = cleanText(item.link, 1000);
+      const feedUrl = cleanText(item.link, 1000);
 
       if (
         !title ||
-        !url ||
-        !/^https?:\/\//i.test(url)
+        !feedUrl ||
+        !/^https?:\/\//i.test(feedUrl)
       ) {
         continue;
       }
@@ -327,14 +423,22 @@ for (const feed of feeds) {
         item.pubDate ||
         "Date not supplied by source";
 
-      const feedSummary = cleanText(
+      const feedSummaryFallback = cleanText(
         item.contentSnippet ||
           item.summary ||
           "Open the original source to review the full report.",
         450
       );
 
-      const publisher = publisherFromTitle(title);
+      const publisherFallback = publisherFromTitle(title);
+      const enrichedSource = await enrichSource(
+        feedUrl,
+        feedSummaryFallback,
+        publisherFallback
+      );
+      const url = enrichedSource.url;
+      const feedSummary = enrichedSource.summary || feedSummaryFallback;
+      const publisher = enrichedSource.publisher || publisherFallback;
 
       let draft = null;
 
@@ -367,7 +471,7 @@ for (const feed of feeds) {
       // The separate /approve workflow is responsible for preparing a pull request.
       if (draft) {
         draftStatus =
-          "AI draft generated from RSS metadata only; held for human verification before publication.";
+          "AI draft generated from the headline and available publisher metadata; held for human verification before publication.";
       }
 
       if (issueExists(url)) {
