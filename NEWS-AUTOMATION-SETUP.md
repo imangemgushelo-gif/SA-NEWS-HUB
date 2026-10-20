@@ -5,7 +5,7 @@
 - Checks RSS-based Google News searches for South Africa, world news, markets/forex, sport, technology, and economic news.
 - Runs on a five-minute GitHub Actions schedule (GitHub may delay scheduled runs).
 - Creates one GitHub Issue per newly discovered source URL as the review queue.
-- If the Groq API key is configured, prepares a headline and short original summary from the RSS headline/snippet. If AI is unavailable, it still creates a review issue with a fallback draft.
+- If the Groq API key is configured, tries to resolve the publisher's original page and extract its public description before preparing an original headline and summary. If AI or page metadata is unavailable, it still creates a review issue and reports the missing draft.
 - Emails a notification when new pending issues are created.
 - Keeps discovery separate from publishing. Nothing is published just because an issue is created. Only the repository owner can comment exactly `/approve`; that prepares a pull request, and the story goes live only after that pull request is reviewed and merged into `main`.
 
@@ -37,34 +37,18 @@ Add the `GROQ_API_KEY` repository secret to enable AI draft preparation. Without
 
 The AI sees only a Google News RSS headline and short snippet, not necessarily the full article. It can make mistakes or miss context, and it cannot independently confirm breaking news. Treat its draft as a starting point. Open the source link, verify the key facts, and reject the issue if the story or draft looks wrong. Never approve a story you have not checked.
 
-## Automatic publishing of checked stories
+## Publishing stories
 
-The discovery workflow can automatically publish a story only when all of these checks pass:
+News discovery and publication are deliberately separate so unverified RSS headlines do not go live by themselves.
 
-- Groq returns a usable headline and a validated 90–110 word summary, and does not flag the item for review.
-- The story link resolves successfully over HTTPS to a publisher on the explicit trusted-publisher allowlist in `scripts/discover-news.mjs`.
-- The normalized source URL and headline are not already present in the published news data.
-- The GitHub token has permission to update `src/src/data/news.js`.
+1. The discovery workflow checks public RSS feeds, tries to resolve each Google News result to the publisher's original HTTPS page, and extracts a public page description when available.
+2. It creates a pending GitHub Issue and emails the review queue. Groq can prepare an original draft from the headline and available page metadata, but that draft is not independent fact-checking.
+3. Open the original publisher article and verify the key facts, dates, names, figures, and relevance. Fill in any missing draft fields in the issue.
+4. Only the repository owner can comment exactly `/approve` on an open pending-review issue.
+5. The approval workflow validates the headline, category, summary, publisher attribution, and HTTPS source URL, then creates a publication pull request.
+6. Review and merge that pull request into `main`. The story is added to `src/src/data/news.js`; the site shows it after the configured Cloudflare Pages deployment finishes.
 
-Stories with missing AI drafts, unrecognized publishers, unreachable links, duplicate content, or failed checks remain in the pending review queue. This is a basic filter, not a guarantee of factual accuracy: the AI draft is based on the RSS title/snippet and may omit context. Check the live site and email notifications regularly. The allowlist is intentionally conservative, so some legitimate sources will remain pending until added to the code after review.
-
-Automatic publication commits directly to `main`; if Cloudflare Pages is configured to deploy from `main`, the site updates after the deployment finishes.
-
-## Reviewing stories
-
-Open the repository's **Issues** tab. New stories are titled `[Pending review] [Category] …`. Each issue includes a draft, source link, category, and a short review checklist.
-
-- **Approve:** if the story and draft check out, comment exactly `/approve`. Only the repository owner can trigger the publication workflow.
-- **Reject:** close the issue without commenting `/approve`.
-
-## Explicit approval and publishing
-
-1. Open the source link and check the facts against the draft.
-2. If it looks accurate and relevant, comment exactly `/approve`.
-3. The workflow prepares a pull request. It does **not** publish the story immediately.
-4. Review the pull request and merge it into `main` only when you are ready to publish.
-
-The publication workflow validates the headline, category, summary, publisher attribution, and HTTPS source URL. The original publisher's article remains the source; SA News Hub should publish an original summary, not a copied article.
+The publication workflow supports these categories: South Africa, World, Politics, Markets & Forex, Sport, Technology, and Economic Calendar. Duplicate source URLs are rejected. An issue or AI draft by itself does not publish anything. If the original source cannot be verified or the summary is incomplete, do not approve the story.
 
 ## Notes
 
