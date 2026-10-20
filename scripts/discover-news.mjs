@@ -2,117 +2,245 @@ import Parser from "rss-parser";
 import nodemailer from "nodemailer";
 import { execFileSync } from "node:child_process";
 
-const required = ["GMAIL_USER", "GMAIL_APP_PASSWORD", "NEWS_APPROVER_EMAIL", "GITHUB_REPOSITORY"];
+const required = [
+  "GMAIL_USER",
+  "GMAIL_APP_PASSWORD",
+  "NEWS_APPROVER_EMAIL",
+  "GITHUB_REPOSITORY"
+];
+
 for (const key of required) {
-  if (!process.env[key]) throw new Error(`Missing required environment variable: ${key}`);
+  if (!process.env[key]) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
 }
 
 const feeds = [
-  { category: "South Africa", url: "https://news.google.com/rss/search?q=South+Africa+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "World", url: "https://news.google.com/rss/search?q=world+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "Politics", url: "https://news.google.com/rss/search?q=South+Africa+politics+parliament+government&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "Markets & Forex", url: "https://news.google.com/rss/search?q=South+Africa+markets+forex+economy&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "Sport", url: "https://news.google.com/rss/search?q=South+Africa+sport&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "Technology", url: "https://news.google.com/rss/search?q=technology+news&hl=en-ZA&gl=ZA&ceid=ZA:en" },
-  { category: "Economic Calendar", url: "https://news.google.com/rss/search?q=South+Africa+economic+data+interest+rates+inflation&hl=en-ZA&gl=ZA&ceid=ZA:en" }
+  {
+    category: "South Africa",
+    url: "https://news.google.com/rss/search?q=South+Africa+news&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "World",
+    url: "https://news.google.com/rss/search?q=world+news&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "Politics",
+    url: "https://news.google.com/rss/search?q=South+Africa+politics+parliament+government&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "Markets & Forex",
+    url: "https://news.google.com/rss/search?q=South+Africa+markets+forex+economy&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "Sport",
+    url: "https://news.google.com/rss/search?q=South+Africa+sport&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "Technology",
+    url: "https://news.google.com/rss/search?q=technology+news&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  },
+  {
+    category: "Economic Calendar",
+    url: "https://news.google.com/rss/search?q=South+Africa+economic+data+interest+rates+inflation&hl=en-ZA&gl=ZA&ceid=ZA:en"
+  }
 ];
 
-const parser = new Parser({ timeout: 20000 });
+const parser = new Parser({
+  timeout: 20000
+});
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
 });
+
 const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
 const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 
 function issueExists(url) {
   try {
-    const output = execFileSync("gh", [
-      "issue", "list", "--repo", repo, "--state", "open",
-      "--search", `"${url}" in:body`, "--json", "number", "--limit", "1"
-    ], { encoding: "utf8" });
+    const output = execFileSync(
+      "gh",
+      [
+        "issue",
+        "list",
+        "--repo",
+        repo,
+        "--state",
+        "open",
+        "--search",
+        `"${url}" in:body`,
+        "--json",
+        "number",
+        "--limit",
+        "1"
+      ],
+      {
+        encoding: "utf8"
+      }
+    );
+
     return JSON.parse(output).length > 0;
   } catch (error) {
-    throw new Error(`Could not check the review queue safely: ${error.message}`);
+    throw new Error(
+      `Could not check the review queue safely: ${error.message}`
+    );
   }
 }
 
 function publisherFromTitle(title) {
   const match = title.match(/\s+-\s+([^\-].*)$/);
+
   return match?.[1]?.trim().slice(0, 120) || "";
 }
 
 function cleanText(value, max = 900) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
 }
 
-async function createAiDraft({ title, summary, category, publisher }) {
-  if (!aiConfigured) return null;
-  if (String(summary || "").trim().length < 80) {
-    throw new Error("RSS snippet is too short for a responsible 90–110 word draft; held for review.");
+async function createAiDraft({
+  title,
+  summary,
+  category,
+  publisher
+}) {
+  if (!aiConfigured) {
+    return null;
   }
 
-  const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+  if (String(summary || "").trim().length < 80) {
+    throw new Error(
+      "RSS snippet is too short for a responsible 90–110 word draft; held for review."
+    );
+  }
+
+  const endpoint =
+    "https://api.groq.com/openai/v1/chat/completions";
+
   let payload = null;
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     let response;
+
     try {
       response = await fetch(endpoint, {
         method: "POST",
+
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
         },
+
         signal: AbortSignal.timeout(25000),
+
         body: JSON.stringify({
           model: "openai/gpt-oss-20b",
           temperature: 0.2,
           max_tokens: 700,
-          response_format: { type: "json_object" },
+
+          response_format: {
+            type: "json_object"
+          },
+
           messages: [
             {
               role: "system",
+
               content: [
                 "You prepare cautious, original draft copy for a South African news site.",
+
                 "Use ONLY the supplied RSS headline and snippet. You have not read the linked article. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
+
                 "Write a neutral summary of 90–110 words in clear South African English, but only if the provided information genuinely supports that length without repetition or speculation.",
+
                 "If the snippet is too thin, ambiguous, or insufficient to support a reliable summary, set needs_review to true and explain why in editorial_note. Never pad the summary with generic claims to reach the word count.",
+
                 "Keep the category exactly as supplied. Use the supplied publisher string or an empty string; do not guess the publisher.",
+
                 "Return only valid JSON with keys headline, summary, needs_review, editorial_note."
               ].join(" ")
             },
+
             {
               role: "user",
-              content: JSON.stringify({ headline: title, feed_snippet: summary, category, publisher })
+
+              content: JSON.stringify({
+                headline: title,
+                feed_snippet: summary,
+                category,
+                publisher
+              })
             }
           ]
         })
       });
     } catch (error) {
-      if (attempt === 3) throw new Error(`Groq request failed after 3 attempts: ${error.message}`);
+      if (attempt === 3) {
+        throw new Error(
+          `Groq request failed after 3 attempts: ${error.message}`
+        );
+      }
+
       const delay = 1000 * (2 ** (attempt - 1));
-      console.warn(`Groq network/timeout error (attempt ${attempt}/3); retrying in ${delay}ms.`);
+
+      console.warn(
+        `Groq network/timeout error (attempt ${attempt}/3); retrying in ${delay}ms.`
+      );
+
       await new Promise(resolve => setTimeout(resolve, delay));
+
       continue;
     }
 
     if (!response.ok) {
-      const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+      const retryable =
+        response.status === 408 ||
+        response.status === 429 ||
+        response.status >= 500;
+
       if (!retryable || attempt === 3) {
-        throw new Error(`Groq API returned HTTP ${response.status}${retryable ? " after retries" : ""}`);
+        throw new Error(
+          `Groq API returned HTTP ${response.status}${
+            retryable ? " after retries" : ""
+          }`
+        );
       }
-      const retryAfterHeader = response.headers.get("retry-after");
+
+      const retryAfterHeader =
+        response.headers.get("retry-after");
+
       const retryAfterSeconds = Number(retryAfterHeader);
-      const retryAfterDate = retryAfterHeader ? Date.parse(retryAfterHeader) : NaN;
-      const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-        ? Math.min(retryAfterSeconds * 1000, 30000)
-        : Number.isFinite(retryAfterDate) && retryAfterDate > Date.now()
-          ? Math.min(retryAfterDate - Date.now(), 30000)
-          : 1000 * (2 ** (attempt - 1));
-      console.warn(`Groq API HTTP ${response.status} (attempt ${attempt}/3); retrying in ${retryAfterMs}ms.`);
+
+      const retryAfterDate = retryAfterHeader
+        ? Date.parse(retryAfterHeader)
+        : NaN;
+
+      const retryAfterMs =
+        Number.isFinite(retryAfterSeconds) &&
+        retryAfterSeconds > 0
+          ? Math.min(retryAfterSeconds * 1000, 30000)
+          : Number.isFinite(retryAfterDate) &&
+            retryAfterDate > Date.now()
+            ? Math.min(
+                retryAfterDate - Date.now(),
+                30000
+              )
+            : 1000 * (2 ** (attempt - 1));
+
+      console.warn(
+        `Groq API HTTP ${response.status} (attempt ${attempt}/3); retrying in ${retryAfterMs}ms.`
+      );
+
       await new Promise(resolve => setTimeout(resolve, retryAfterMs));
+
       continue;
     }
 
@@ -121,13 +249,23 @@ async function createAiDraft({ title, summary, category, publisher }) {
     } catch {
       throw new Error("Groq API returned invalid JSON.");
     }
+
     break;
   }
 
   const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content !== "string") throw new Error("Groq API returned no draft text.");
-  const jsonText = content.trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/i, "");
+
+  if (typeof content !== "string") {
+    throw new Error("Groq API returned no draft text.");
+  }
+
+  const jsonText = content
+    .trim()
+    .replace(/^\x60{3}(?:json)?\s*/i, "")
+    .replace(/\s*\x60{3}$/i, "");
+
   let draft;
+
   try {
     draft = JSON.parse(jsonText);
   } catch {
@@ -136,40 +274,91 @@ async function createAiDraft({ title, summary, category, publisher }) {
 
   const headline = cleanText(draft.headline, 160);
   const draftSummary = cleanText(draft.summary, 1200);
-  const wordCount = draftSummary.split(/\s+/).filter(Boolean).length;
+
+  const wordCount = draftSummary
+    .split(/\s+/)
+    .filter(Boolean)
+    .length;
+
   if (draft.needs_review !== false) {
-    throw new Error("Groq flagged this item for editorial review.");
+    throw new Error(
+      "Groq flagged this item for editorial review."
+    );
   }
-  if (headline.length < 8 || wordCount < 90 || wordCount > 110) {
-    throw new Error(`Draft validation failed (headline length or summary word count: ${wordCount}; expected 90–110 words).`);
+
+  if (
+    headline.length < 8 ||
+    wordCount < 90 ||
+    wordCount > 110
+  ) {
+    throw new Error(
+      `Draft validation failed (headline length or summary word count: ${wordCount}; expected 90–110 words).`
+    );
   }
 
   return {
     headline,
     summary: draftSummary,
-    editorialNote: cleanText(draft.editorial_note, 350) || "AI-generated from the RSS headline/snippet only; verify the full original report before relying on it."
+
+    editorialNote:
+      cleanText(draft.editorial_note, 350) ||
+      "AI-generated from the RSS headline/snippet only; verify the full original report before relying on it."
   };
 }
 
 for (const feed of feeds) {
   try {
     const parsed = await parser.parseURL(feed.url);
+
     for (const item of (parsed.items || []).slice(0, 5)) {
       const title = cleanText(item.title, 250);
       const url = cleanText(item.link, 1000);
-      if (!title || !url || !/^https?:\/\//i.test(url)) continue;
-      const published = item.isoDate || item.pubDate || "Date not supplied by source";
-      const feedSummary = cleanText(item.contentSnippet || item.summary || "Open the original source to review the full report.", 450);
+
+      if (
+        !title ||
+        !url ||
+        !/^https?:\/\//i.test(url)
+      ) {
+        continue;
+      }
+
+      const published =
+        item.isoDate ||
+        item.pubDate ||
+        "Date not supplied by source";
+
+      const feedSummary = cleanText(
+        item.contentSnippet ||
+          item.summary ||
+          "Open the original source to review the full report.",
+        450
+      );
+
       const publisher = publisherFromTitle(title);
+
       let draft = null;
-      let draftStatus = "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
+
+      let draftStatus =
+        "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
+
       if (aiConfigured) {
         try {
-          draft = await createAiDraft({ title, summary: feedSummary, category: feed.category, publisher });
-          draftStatus = "AI draft generated from the RSS headline and snippet. It has not been independently fact-checked.";
+          draft = await createAiDraft({
+            title,
+            summary: feedSummary,
+            category: feed.category,
+            publisher
+          });
+
+          draftStatus =
+            "AI draft generated from the RSS headline and snippet. It has not been independently fact-checked.";
         } catch (error) {
-          console.error(`AI draft failed for one story (${feed.category}): ${error.message}`);
-          draftStatus = "AI draft failed for this item; fill the publication draft manually or reject this story.";
+          console.error(
+            `AI draft failed for one story (${feed.category}): ${error.message}`
+          );
+
+          draftStatus =
+            "AI draft failed for this item; fill the publication draft manually or reject this story.";
         }
       }
 
@@ -177,79 +366,172 @@ for (const feed of feeds) {
       // Keep every AI-generated story in the human editorial review queue.
       // The separate /approve workflow is responsible for preparing a pull request.
       if (draft) {
-        draftStatus = "AI draft generated from RSS metadata only; held for human verification before publication.";
+        draftStatus =
+          "AI draft generated from RSS metadata only; held for human verification before publication.";
       }
 
-      if (issueExists(url)) continue;
+      if (issueExists(url)) {
+        continue;
+      }
 
       const body = [
         "## Pending editorial review",
         "",
+
         "**Status:** PENDING — this story is not published on SA News Hub.",
+
         `**Category:** ${feed.category}`,
+
         `**Feed:** ${parsed.title || "Google News RSS"}`,
+
         `**Published:** ${published}`,
+
         `**AI preparation:** ${draftStatus}`,
+
         "",
+
         "### Feed summary",
         feedSummary,
+
         "",
+
         "### Original story link",
         url,
+
         "",
+
         "### Quick review checklist",
+
         "- [ ] Open the source link and check that the article is real, current, and relevant.",
+
         "- [ ] Compare the draft with the source; reject it if the draft adds unsupported details or gets anything wrong.",
+
         "- [ ] If it looks good, comment exactly /approve. If not, close the issue without approving it.",
+
         "",
+
         "### Publication draft",
         "",
+
         "The draft is a starting point, not independent verification. The AI only receives the RSS headline and snippet, which may omit important context.",
-        ...(draft?.editorialNote ? [`**AI note:** ${draft.editorialNote}`, ""] : []),
+
+        ...(draft?.editorialNote
+          ? [`**AI note:** ${draft.editorialNote}`, ""]
+          : []),
+
         "#### Approved headline",
-        draft?.headline || `[AI draft unavailable — suggested feed headline: ${title}]`,
+
+        draft?.headline ||
+          `[AI draft unavailable — suggested feed headline: ${title}]`,
+
         "",
+
         "#### Publication category",
         feed.category,
+
         "",
+
         "#### Original summary",
-        draft?.summary || `[Draft unavailable. Feed summary: ${feedSummary}]`,
+
+        draft?.summary ||
+          `[Draft unavailable. Feed summary: ${feedSummary}]`,
+
         "",
+
         "#### Publisher attribution",
-        publisher || "[Check the original article and enter the publisher name]",
+
+        publisher ||
+          "[Check the original article and enter the publisher name]",
+
         "",
+
         "#### Original source URL",
         url,
+
         "",
+
         "Commenting /approve prepares a pull request; it does not publish immediately. The story becomes live only after you review and merge that pull request into main."
       ].join("\n");
 
-      const issueUrl = execFileSync("gh", [
-        "issue", "create", "--repo", repo,
-        "--title", `[Pending review] [${feed.category}] ${(draft?.headline || title).slice(0, 150)}`,
-        "--body", body
-      ], { encoding: "utf8" }).trim();
+      const issueUrl = execFileSync(
+        "gh",
+        [
+          "issue",
+          "create",
+          "--repo",
+          repo,
 
-      newStories.push({ category: feed.category, title: draft?.headline || title, url, published, summary: draft?.summary || feedSummary, issueUrl, ai: Boolean(draft) });
+          "--title",
+          `[Pending review] [${feed.category}] ${(draft?.headline || title).slice(0, 150)}`,
+
+          "--body",
+          body
+        ],
+        {
+          encoding: "utf8"
+        }
+      ).trim();
+
+      newStories.push({
+        category: feed.category,
+        title: draft?.headline || title,
+        url,
+        published,
+        summary: draft?.summary || feedSummary,
+        issueUrl,
+        ai: Boolean(draft)
+      });
     }
   } catch (error) {
-    console.error(`Feed failed (${feed.category}): ${error.message}`);
+    console.error(
+      `Feed failed (${feed.category}): ${error.message}`
+    );
   }
 }
 
 if (newStories.length) {
-  const reviewRows = newStories.map(story =>
-    "• HELD FOR REVIEW [" + story.category + "]: " + story.title + "\n  Source: " + story.url + "\n  Review issue: " + story.issueUrl + "\n  AI draft: " + (story.ai ? "prepared but not independently verified" : "not available") + "\n  Summary: " + story.summary + "\n"
-  ).join("\n");
+  const reviewRows = newStories
+    .map(story =>
+      "• HELD FOR REVIEW [" +
+      story.category +
+      "]: " +
+      story.title +
+      "\n  Source: " +
+      story.url +
+      "\n  Review issue: " +
+      story.issueUrl +
+      "\n  AI draft: " +
+      (story.ai
+        ? "prepared but not independently verified"
+        : "not available") +
+      "\n  Summary: " +
+      story.summary +
+      "\n"
+    )
+    .join("\n");
+
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
     to: process.env.NEWS_APPROVER_EMAIL,
-    subject: "SA News Hub: " + newStories.length + " stories held for editorial review",
-    text: "Stories held for editorial review:\n\n" +
+
+    subject:
+      "SA News Hub: " +
+      newStories.length +
+      " stories held for editorial review",
+
+    text:
+      "Stories held for editorial review:\n\n" +
       reviewRows +
-      "\nReview queue: https://github.com/" + repo + "/issues\nLive site: https://sa-news-hub.pages.dev/\n\nAI-generated drafts from RSS snippets are never published automatically. A human must verify the original article, approve the review issue, and merge the resulting pull request."
+      "\nReview queue: https://github.com/" +
+      repo +
+      "/issues\nLive site: https://sa-news-hub.pages.dev/\n\nAI-generated drafts from RSS snippets are never published automatically. A human must verify the original article, approve the review issue, and merge the resulting pull request."
   });
-  console.log("Created " + newStories.length + " editorial review issue(s); email notification sent.");
+
+  console.log(
+    "Created " +
+    newStories.length +
+    " editorial review issue(s); email notification sent."
+  );
 } else {
   console.log("No new stories found; no email sent.");
-}
+                   }
