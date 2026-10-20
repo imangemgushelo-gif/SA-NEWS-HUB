@@ -280,35 +280,11 @@ for (const feed of feeds) {
         }
       }
 
-      // Publish only when AI returned a complete draft and the resolved source is on the trusted allowlist.
-      // Any failed or uncertain check falls back to the existing pending-review issue.
+      // RSS headlines and snippets are not independent verification.
+      // Keep every AI-generated story in the human editorial review queue.
+      // The separate /approve workflow is responsible for preparing a pull request.
       if (draft) {
-        try {
-          const verified = await resolveTrustedSource(url);
-          if (verified) {
-            const result = await autoPublishStory({
-              title: draft.headline,
-              category: feed.category,
-              summary: draft.summary,
-              sourceUrl: verified.url,
-              publisher: verified.publisher
-            });
-            if (result === "published") {
-              autoPublished.push({ category: feed.category, title: draft.headline, sourceUrl: verified.url, publisher: verified.publisher });
-              console.log("Auto-published checked story (" + feed.category + "): " + draft.headline);
-              continue;
-            }
-            if (result === "duplicate") {
-              console.log("Skipped already-published duplicate: " + draft.headline);
-              continue;
-            }
-          } else {
-            draftStatus = "Held for review: source did not resolve to an approved publisher.";
-          }
-        } catch (error) {
-          console.error("Automatic publishing checks failed (" + feed.category + "): " + error.message);
-          draftStatus = "Held for review: automatic publishing checks could not be completed.";
-        }
+        draftStatus = "AI draft generated from RSS metadata only; held for human verification before publication.";
       }
 
       if (issueExists(url)) continue;
@@ -378,7 +354,7 @@ if (newStories.length || autoPublished.length) {
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
     to: process.env.NEWS_APPROVER_EMAIL,
-    subject: "SA News Hub: " + autoPublished.length + " auto-published, " + newStories.length + " held for review",
+    subject: "SA News Hub: " + newStories.length + " stories held for editorial review",
     text: "Automatic publishing results:\n\n" +
       (publishedRows || "No stories auto-published this run.\n") +
       "\nStories held for review:\n\n" +
