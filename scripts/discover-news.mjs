@@ -654,7 +654,7 @@ for (const feed of feeds) {
 }
 
 if (autoPublishedStories.length) {
-  const updatedNewsFile = "export const news = " + JSON.stringify(publishedStories, null, 2) + ";\\n";
+  const updatedNewsFile = "export const news = " + JSON.stringify(publishedStories, null, 2) + ";\n";
   await writeFile(newsFilePath, updatedNewsFile, "utf8");
   execFileSync("git", ["config", "user.name", "github-actions[bot]"]);
   execFileSync("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
@@ -696,10 +696,10 @@ if (newStories.length) {
 
     text:
       (autoPublishedStories.length
-        ? "Automatically published after strict checks:\\n\\n" +
-          autoPublishedStories.map(story => "• " + story.title + "\\n  " + story.sourceUrl).join("\\n\\n") + "\\n\\n"
+        ? "Automatically published after strict checks:\n\n" +
+          autoPublishedStories.map(story => "• " + story.title + "\n  " + story.sourceUrl).join("\n\n") + "\n\n"
         : "") +
-      "Stories held for editorial review:\\n\\n" +
+      "Stories held for editorial review:\n\n" +
       reviewRows +
       "\\nReview queue: https://github.com/" +
       repo +
