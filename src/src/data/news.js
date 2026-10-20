@@ -1,5 +1,32 @@
 export const news = [
   {
+    "slug": "rand-steady-ahead-of-budget-and-inflation-data",
+    "title": "Rand Holds Steady as Markets Await Budget and Inflation Data",
+    "category": "Markets & Forex",
+    "summary": "The South African rand was little changed in early trading on Tuesday as investors awaited the medium-term budget policy statement and September inflation figures. Finance Minister Enoch Godongwana was due to present the budget statement on Wednesday, while Statistics South Africa was expected to publish inflation and retail-sales data. Economists surveyed by Reuters expected annual consumer inflation to rise to 4.7% in September from 4.4% in August. The releases are being watched for indications of price pressures, consumer demand and the country’s fiscal outlook.",
+    "publisher": "Reuters",
+    "sourceUrl": "https://www.reuters.com/world/africa/south-african-rand-holds-steady-ahead-budget-inflation-data-2026-10-20/",
+    "publishedAt": "2026-10-20T06:18:00.000Z"
+  },
+  {
+    "slug": "tshwane-warns-bronkhorstspruit-residents-about-tap-water",
+    "title": "Tshwane Warns Bronkhorstspruit Residents Not to Use Tap Water",
+    "category": "South Africa",
+    "summary": "The City of Tshwane has warned residents supplied by the Bronkhorstspruit water system not to use tap water for drinking or other household purposes after laboratory testing found bacterial contamination. SAnews reported 408 gastrointestinal illness cases in the area between 7 and 18 October. The municipality said tap water should only be used to flush toilets until authorities confirm it is safe again. Residents have been advised to use water supplied by municipal tankers while the city works to address the problem and restore a safe supply.",
+    "publisher": "SAnews / South African Government News Agency",
+    "sourceUrl": "https://www.sanews.gov.za/south-africa/bronkhorstspruit-residents-warned-against-using-tap-water",
+    "publishedAt": "2026-10-20T00:00:00.000Z"
+  },
+  {
+    "slug": "ethekwini-accelerates-flood-damaged-water-main-repairs",
+    "title": "eThekwini Speeds Up Repairs to Flood-Damaged Water Mains",
+    "category": "South Africa",
+    "summary": "eThekwini Mayor Cyril Xaba has instructed the municipality’s water and sanitation team to speed up replacement of water mains damaged by recurring floods, particularly in Inanda Newtown A. Several communities in Inanda, Ntuzuma and KwaMashu have been relying on temporary mains with limited capacity. SAnews reported that replacement parts for vandalised pressure-reducing valves had been procured, with repairs due to begin on 21 October, starting in Lindelani and Ntuzuma G before moving to other areas. The municipality also plans to hand over newly drilled boreholes to help ease shortages.",
+    "publisher": "SAnews / South African Government News Agency",
+    "sourceUrl": "https://www.sanews.gov.za/south-africa/ethekwini-speeds-repairs-flood-damaged-water-mains",
+    "publishedAt": "2026-10-20T00:00:00.000Z"
+  },
+  {
     "slug": "australia-dominate-south-africa-as-proteas-face-tough-final-day-test",
     "title": "Australia Dominate South Africa as Proteas Face Tough Final-Day Test",
     "category": "Sport",
@@ -25,5 +52,5 @@ export const news = [
     "publisher": "SAnews / South African Government News Agency",
     "sourceUrl": "https://www.sanews.gov.za/south-africa/iec-enters-partnership-counter-disinformation",
     "publishedAt": "2026-10-20T00:00:00Z"
-  },
+  }
 ];
