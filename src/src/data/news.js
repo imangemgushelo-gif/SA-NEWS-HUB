@@ -7,7 +7,7 @@ export const news = [
     "publisher": "The Citizen — Wesley Botton",
     "sourceUrl": "https://www.citizen.co.za/sport/cricket/australia-south-africa-first-test-day-four-takeaways/",
     "publishedAt": "2026-10-12T23:20:05.377Z"
-  }
+  },
   {
     "slug": "bavuma-179-south-africa-take-control-australia-second-test",
     "title": "Bavuma's 179 Puts South Africa in Control of Second Test",
