@@ -701,9 +701,9 @@ if (newStories.length) {
         : "") +
       "Stories held for editorial review:\n\n" +
       reviewRows +
-      "\\nReview queue: https://github.com/" +
+      "\nReview queue: https://github.com/" +
       repo +
-      "\\nLive site: https://sa-news-hub.pages.dev/\\n\\nOnly stories with a recent timestamp, direct HTTPS publisher page, publisher-provided description and site name, and a validated AI draft are auto-published."
+      "\nLive site: https://sa-news-hub.pages.dev/\n\nOnly stories with a recent timestamp, direct HTTPS publisher page, publisher-provided description and site name, and a validated AI draft are auto-published."
   });
 
   console.log(
@@ -711,6 +711,16 @@ if (newStories.length) {
     newStories.length +
     " editorial review issue(s); email notification sent."
   );
+} else if (autoPublishedStories.length) {
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to: process.env.NEWS_APPROVER_EMAIL,
+    subject: "SA News Hub: " + autoPublishedStories.length + " new story/stories published",
+    text: "Published stories:\n\n" +
+      autoPublishedStories.map(story => "• " + story.title + "\n  " + story.sourceUrl).join("\n\n") +
+      "\n\nLive site: https://sa-news-hub.pages.dev/"
+  });
+  console.log("Published " + autoPublishedStories.length + " story/stories; email notification sent.");
 } else {
-  console.log("No new stories found; no email sent.");
-                   }
+  console.log("No eligible new stories found; no email sent.");
+}
