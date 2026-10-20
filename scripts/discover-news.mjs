@@ -169,7 +169,7 @@ async function createAiDraft({ title, summary, category, publisher }) {
       response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: \`Bearer \${process.env.GROQ_API_KEY}\`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
         },
         signal: AbortSignal.timeout(25000),
@@ -198,9 +198,9 @@ async function createAiDraft({ title, summary, category, publisher }) {
         })
       });
     } catch (error) {
-      if (attempt === 3) throw new Error(\`Groq request failed after 3 attempts: \${error.message}\`);
+      if (attempt === 3) throw new Error(`Groq request failed after 3 attempts: ${error.message}`);
       const delay = 1000 * (2 ** (attempt - 1));
-      console.warn(\`Groq network/timeout error (attempt \${attempt}/3); retrying in \${delay}ms.\`);
+      console.warn(`Groq network/timeout error (attempt ${attempt}/3); retrying in ${delay}ms.`);
       await new Promise(resolve => setTimeout(resolve, delay));
       continue;
     }
@@ -208,7 +208,7 @@ async function createAiDraft({ title, summary, category, publisher }) {
     if (!response.ok) {
       const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
       if (!retryable || attempt === 3) {
-        throw new Error(\`Groq API returned HTTP \${response.status}\${retryable ? " after retries" : ""}\`);
+        throw new Error(`Groq API returned HTTP ${response.status}${retryable ? " after retries" : ""}`);
       }
       const retryAfterHeader = response.headers.get("retry-after");
       const retryAfterSeconds = Number(retryAfterHeader);
@@ -218,7 +218,7 @@ async function createAiDraft({ title, summary, category, publisher }) {
         : Number.isFinite(retryAfterDate) && retryAfterDate > Date.now()
           ? Math.min(retryAfterDate - Date.now(), 30000)
           : 1000 * (2 ** (attempt - 1));
-      console.warn(\`Groq API HTTP \${response.status} (attempt \${attempt}/3); retrying in \${retryAfterMs}ms.\`);
+      console.warn(`Groq API HTTP ${response.status} (attempt ${attempt}/3); retrying in ${retryAfterMs}ms.`);
       await new Promise(resolve => setTimeout(resolve, retryAfterMs));
       continue;
     }
@@ -248,7 +248,7 @@ async function createAiDraft({ title, summary, category, publisher }) {
     throw new Error("Groq flagged this item for editorial review.");
   }
   if (headline.length < 8 || wordCount < 90 || wordCount > 110) {
-    throw new Error(\`Draft validation failed (headline length or summary word count: \${wordCount}; expected 90–110 words).\`);
+    throw new Error(`Draft validation failed (headline length or summary word count: ${wordCount}; expected 90–110 words).`);
   }
 
   return {
