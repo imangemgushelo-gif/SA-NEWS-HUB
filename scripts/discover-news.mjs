@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
 });
 const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
-const aiConfigured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
+const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 
 const autoPublished = [];
 const trustedPublishers = {
@@ -156,52 +156,105 @@ function cleanText(value, max = 900) {
 
 async function createAiDraft({ title, summary, category, publisher }) {
   if (!aiConfigured) return null;
+  if (String(summary || "").trim().length < 80) {
+    throw new Error("RSS snippet is too short for a responsible 90–110 word draft; held for review.");
+  }
 
-  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(process.env.CLOUDFLARE_ACCOUNT_ID)}/ai/v1/chat/completions`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    signal: AbortSignal.timeout(25000),
-    body: JSON.stringify({
-      model: "@cf/zai-org/glm-4.7-flash",
-      temperature: 0.2,
-      max_tokens: 650,
-      messages: [
-        {
-          role: "system",
-          content: [
-            "You prepare cautious draft copy for a small South African news site.",
-            "Use ONLY the provided RSS headline and short feed snippet. Do not add facts, names, numbers, quotes, dates, causes, or claims not present in those inputs.",
-            "Do not copy the headline verbatim if a clearer accurate version is possible.",
-            "The summary must be original, neutral, and 40-900 characters. If the snippet is too thin, clearly say the brief feed information is limited instead of inventing details.",
-            "Keep the category exactly as supplied. Do not guess the publisher; use the supplied publisher string or an empty string.",
-            "Return ONLY valid JSON with keys headline, summary, editorial_note. No markdown fences."
-          ].join(" ")
+  const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+  let payload = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: \`Bearer \${process.env.GROQ_API_KEY}\`,
+          "Content-Type": "application/json"
         },
-        {
-          role: "user",
-          content: JSON.stringify({ headline: title, feed_snippet: summary, category, publisher })
-        }
-      ]
-    })
-  });
+        signal: AbortSignal.timeout(25000),
+        body: JSON.stringify({
+          model: "openai/gpt-oss-20b",
+          temperature: 0.2,
+          max_tokens: 700,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: [
+                "You prepare cautious, original draft copy for a South African news site.",
+                "Use ONLY the supplied RSS headline and snippet. You have not read the linked article. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
+                "Write a neutral summary of 90–110 words in clear South African English, but only if the provided information genuinely supports that length without repetition or speculation.",
+                "If the snippet is too thin, ambiguous, or insufficient to support a reliable summary, set needs_review to true and explain why in editorial_note. Never pad the summary with generic claims to reach the word count.",
+                "Keep the category exactly as supplied. Use the supplied publisher string or an empty string; do not guess the publisher.",
+                "Return only valid JSON with keys headline, summary, needs_review, editorial_note."
+              ].join(" ")
+            },
+            {
+              role: "user",
+              content: JSON.stringify({ headline: title, feed_snippet: summary, category, publisher })
+            }
+          ]
+        })
+      });
+    } catch (error) {
+      if (attempt === 3) throw new Error(\`Groq request failed after 3 attempts: \${error.message}\`);
+      const delay = 1000 * (2 ** (attempt - 1));
+      console.warn(\`Groq network/timeout error (attempt \${attempt}/3); retrying in \${delay}ms.\`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
 
-  if (!response.ok) throw new Error(`Cloudflare AI returned HTTP ${response.status}`);
-  const payload = await response.json();
+    if (!response.ok) {
+      const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === 3) {
+        throw new Error(\`Groq API returned HTTP \${response.status}\${retryable ? " after retries" : ""}\`);
+      }
+      const retryAfterHeader = response.headers.get("retry-after");
+      const retryAfterSeconds = Number(retryAfterHeader);
+      const retryAfterDate = retryAfterHeader ? Date.parse(retryAfterHeader) : NaN;
+      const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? Math.min(retryAfterSeconds * 1000, 30000)
+        : Number.isFinite(retryAfterDate) && retryAfterDate > Date.now()
+          ? Math.min(retryAfterDate - Date.now(), 30000)
+          : 1000 * (2 ** (attempt - 1));
+      console.warn(\`Groq API HTTP \${response.status} (attempt \${attempt}/3); retrying in \${retryAfterMs}ms.\`);
+      await new Promise(resolve => setTimeout(resolve, retryAfterMs));
+      continue;
+    }
+
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error("Groq API returned invalid JSON.");
+    }
+    break;
+  }
+
   const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content !== "string") throw new Error("Cloudflare AI returned no draft text.");
+  if (typeof content !== "string") throw new Error("Groq API returned no draft text.");
   const jsonText = content.trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/i, "");
-  const draft = JSON.parse(jsonText);
+  let draft;
+  try {
+    draft = JSON.parse(jsonText);
+  } catch {
+    throw new Error("Groq draft was not valid JSON.");
+  }
+
   const headline = cleanText(draft.headline, 160);
-  const draftSummary = cleanText(draft.summary, 900);
-  if (headline.length < 8 || draftSummary.length < 40) throw new Error("AI draft did not meet the minimum headline/summary checks.");
+  const draftSummary = cleanText(draft.summary, 1200);
+  const wordCount = draftSummary.split(/\s+/).filter(Boolean).length;
+  if (draft.needs_review !== false) {
+    throw new Error("Groq flagged this item for editorial review.");
+  }
+  if (headline.length < 8 || wordCount < 90 || wordCount > 110) {
+    throw new Error(\`Draft validation failed (headline length or summary word count: \${wordCount}; expected 90–110 words).\`);
+  }
+
   return {
     headline,
     summary: draftSummary,
-    editorialNote: cleanText(draft.editorial_note, 350) || "AI-generated from the RSS feed only; verify every detail at the original publisher."
+    editorialNote: cleanText(draft.editorial_note, 350) || "AI-generated from the RSS headline/snippet only; verify the full original report before relying on it."
   };
 }
 
@@ -216,7 +269,7 @@ for (const feed of feeds) {
       const feedSummary = cleanText(item.contentSnippet || item.summary || "Open the original source to review the full report.", 450);
       const publisher = publisherFromTitle(title);
       let draft = null;
-      let draftStatus = "AI draft not configured — add the Cloudflare secrets described in NEWS-AUTOMATION-SETUP.md.";
+      let draftStatus = "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
       if (aiConfigured) {
         try {
           draft = await createAiDraft({ title, summary: feedSummary, category: feed.category, publisher });
