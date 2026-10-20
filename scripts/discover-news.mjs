@@ -65,13 +65,13 @@ const autoPublishedStories = [];
 const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 const newsFilePath = "src/src/data/news.js";
 const newsFileText = await readFile(newsFilePath, "utf8");
-const newsMatch = newsFileText.match(/export\\s+const\\s+news\\s*=\\s*(\\[[\\s\\S]*\\])\\s*;?/);
+const newsMatch = newsFileText.match(/export\s+const\s+news\s*=\s*(\[[\s\S]*\])\s*;?/);
 if (!newsMatch) throw new Error("Could not safely read src/src/data/news.js; refusing to publish.");
 let publishedStories = JSON.parse(newsMatch[1]);
 
 function slugify(value) {
   return value.normalize("NFKD").toLowerCase()
-    .replace(/[^a-z0-9\\s-]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/[\\s-]+/g, "-")
     .replace(/^-+|-+$/g, "")
