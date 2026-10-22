@@ -63,6 +63,9 @@ const repo = process.env.GITHUB_REPOSITORY;
 const newStories = [];
 const autoPublishedStories = [];
 const aiConfigured = Boolean(process.env.GROQ_API_KEY);
+let groqUnavailableForRun = false;
+let aiDraftAttempts = 0;
+const maxAiDraftAttemptsPerRun = 3;
 const newsFilePath = "src/src/data/news.js";
 const newsFileText = await readFile(newsFilePath, "utf8");
 const newsMatch = newsFileText.match(/export\s+const\s+news\s*=\s*(\[[\s\S]*\])\s*;?/);
@@ -315,47 +318,12 @@ async function createAiDraft({
     }
 
     if (!response.ok) {
-      const retryable =
-        response.status === 408 ||
-        response.status === 429 ||
-        response.status >= 500;
-
-      if (!retryable || attempt === 3) {
-        throw new Error(
-          `Groq API returned HTTP ${response.status}${
-            retryable ? " after retries" : ""
-          }`
-        );
-      }
-
-      const retryAfterHeader =
-        response.headers.get("retry-after");
-
-      const retryAfterSeconds = Number(retryAfterHeader);
-
-      const retryAfterDate = retryAfterHeader
-        ? Date.parse(retryAfterHeader)
-        : NaN;
-
-      const retryAfterMs =
-        Number.isFinite(retryAfterSeconds) &&
-        retryAfterSeconds > 0
-          ? Math.min(retryAfterSeconds * 1000, 30000)
-          : Number.isFinite(retryAfterDate) &&
-            retryAfterDate > Date.now()
-            ? Math.min(
-                retryAfterDate - Date.now(),
-                30000
-              )
-            : 1000 * (2 ** (attempt - 1));
-
-      console.warn(
-        `Groq API HTTP ${response.status} (attempt ${attempt}/3); retrying in ${retryAfterMs}ms.`
+      // Do not retry HTTP 400 configuration/request errors or HTTP 429 rate limits.
+      // Log a short provider message to make future diagnosis actionable.
+      const detail = (await response.text()).replace(/\s+/g, " ").slice(0, 300);
+      throw new Error(
+        "Groq API returned HTTP " + response.status + (detail ? ": " + detail : "")
       );
-
-      await new Promise(resolve => setTimeout(resolve, retryAfterMs));
-
-      continue;
     }
 
     try {
@@ -476,8 +444,9 @@ for (const feed of feeds) {
       let draftStatus =
         "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
 
-      if (aiConfigured) {
+      if (aiConfigured && !groqUnavailableForRun && aiDraftAttempts < maxAiDraftAttemptsPerRun) {
         try {
+          aiDraftAttempts += 1;
           draft = await createAiDraft({
             title,
             summary: feedSummary,
@@ -494,7 +463,15 @@ for (const feed of feeds) {
 
           draftStatus =
             "AI draft failed for this item; fill the publication draft manually or reject this story.";
+          if (/Groq API returned HTTP (400|429)/i.test(error.message)) {
+            groqUnavailableForRun = true;
+            console.warn("Disabling further Groq requests for this run after a non-retryable API response.");
+          }
         }
+      } else if (aiConfigured && (groqUnavailableForRun || aiDraftAttempts >= maxAiDraftAttemptsPerRun)) {
+        draftStatus = groqUnavailableForRun
+          ? "Groq unavailable/rate-limited for this run; held for manual editorial review."
+          : "AI draft request limit reached for this run; held for manual editorial review.";
       }
 
       // Auto-publish only when a draft passed validation and the original publisher
