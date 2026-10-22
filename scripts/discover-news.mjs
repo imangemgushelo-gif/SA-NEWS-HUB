@@ -320,7 +320,7 @@ async function createAiDraft({
     if (!response.ok) {
       // Do not retry HTTP 400 configuration/request errors or HTTP 429 rate limits.
       // Log a short provider message to make future diagnosis actionable.
-      const detail = (await response.text()).replace(/\\s+/g, " ").slice(0, 300);
+      const detail = (await response.text()).replace(/\s+/g, " ").slice(0, 300);
       throw new Error(
         "Groq API returned HTTP " + response.status + (detail ? ": " + detail : "")
       );
