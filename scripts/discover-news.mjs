@@ -474,15 +474,16 @@ for (const feed of feeds) {
           : "AI draft request limit reached for this run; held for manual editorial review.";
       }
 
-      // Auto-publish only when a draft passed validation and the original publisher
-      // supplied its own description and site name. Uncertain stories stay in review.
+      // A Groq draft is helpful but must not be a hard dependency for publication:
+      // rate limits should not stall the whole pipeline when the publisher itself
+      // provides a substantial description. In that case publish the source's own
+      // text verbatim (never a feed fallback); otherwise keep the item in review.
       const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
       const isRecent =
         Number.isFinite(publishedDateMs) &&
         publishedDateMs <= Date.now() + 5 * 60 * 1000 &&
         Date.now() - publishedDateMs <= 72 * 60 * 60 * 1000;
       const safeForAutoPublish =
-        Boolean(draft) &&
         enrichedSource.descriptionVerified &&
         enrichedSource.publisherVerified &&
         feedSummary.length >= 150 &&
