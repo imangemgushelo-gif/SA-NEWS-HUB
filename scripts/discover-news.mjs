@@ -481,14 +481,16 @@ for (const feed of feeds) {
         publishedDateMs <= Date.now() + 5 * 60 * 1000 &&
         Date.now() - publishedDateMs <= 72 * 60 * 60 * 1000;
       const safeForAutoPublish =
+        Boolean(draft) &&
+        Boolean(enrichedSource.articleText) &&
+        enrichedSource.articleText.length >= 1000 &&
         enrichedSource.descriptionVerified &&
         enrichedSource.publisherVerified &&
-        feedSummary.length >= 150 &&
         publisher.length > 1 &&
         isRecent &&
         !sourceHost.endsWith("news.google.com");
 
-      if (safeForAutoPublish) {
+      if (safeForAutoPublish && draft) {
         let slug = slugify(draft.headline) || "news";
         if (publishedStories.some(story => story.slug === slug) ||
             autoPublishedStories.some(story => story.slug === slug)) {
@@ -499,6 +501,7 @@ for (const feed of feeds) {
           title: draft.headline,
           category: feed.category,
           summary: draft.summary,
+          author: "SA News Hub Editorial Desk",
           publisher,
           sourceUrl: normalizedSourceUrl,
           publishedAt: new Date(publishedDateMs).toISOString()
@@ -526,7 +529,7 @@ if (autoPublishedStories.length) {
   execFileSync("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
   execFileSync("git", ["add", newsFilePath]);
   execFileSync("git", ["commit", "-m", `Publish ${autoPublishedStories.length} verified news story/stories`]);
-  execFileSync("git", ["push", "origin", "HEAD:main"]);
+  execFileSync("git", ["push", "origin", "HEAD:" + (process.env.GITHUB_REF_NAME || "main")]);
   console.log(`Published ${autoPublishedStories.length} story/stories to src/src/data/news.js.`);
 }
 
