@@ -1,13 +1,10 @@
 import Parser from "rss-parser";
-import nodemailer from "nodemailer";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
 const required = [
-  "GMAIL_USER",
-  "GMAIL_APP_PASSWORD",
-  "NEWS_APPROVER_EMAIL",
-  "GITHUB_REPOSITORY"
+  "GITHUB_REPOSITORY",
+  "GROQ_API_KEY"
 ];
 
 for (const key of required) {
@@ -47,25 +44,22 @@ const feeds = [
   }
 ];
 
+const trustedPublisherDomains = new Set(["bbc.com","bbc.co.uk","reuters.com","apnews.com","aljazeera.com","enca.com","news24.com","timeslive.co.za","businesslive.co.za","moneyweb.co.za","dailymaverick.co.za","sowetanlive.co.za","iol.co.za","citizen.co.za","ewn.co.za","supersport.com","sport24.co.za","techcentral.co.za"]);
+function isTrustedPublisherHost(hostname) {
+  const host = hostname.toLowerCase().replace(/^www\./, "");
+  return [...trustedPublisherDomains].some(domain => host === domain || host.endsWith("." + domain));
+}
+
 const parser = new Parser({
   timeout: 20000
 });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
-});
-
 const repo = process.env.GITHUB_REPOSITORY;
-const newStories = [];
 const autoPublishedStories = [];
 const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 let groqUnavailableForRun = false;
 let aiDraftAttempts = 0;
-const maxAiDraftAttemptsPerRun = 3;
+const maxAiDraftAttemptsPerRun = 12;
 const newsFilePath = "src/src/data/news.js";
 const newsFileText = await readFile(newsFilePath, "utf8");
 const newsMatch = newsFileText.match(/export\s+const\s+news\s*=\s*(\[[\s\S]*\])\s*;?/);
@@ -79,37 +73,6 @@ function slugify(value) {
     .replace(/[\s-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 70);
-}
-
-function issueExists(url) {
-  try {
-    const output = execFileSync(
-      "gh",
-      [
-        "issue",
-        "list",
-        "--repo",
-        repo,
-        "--state",
-        "open",
-        "--search",
-        `"${url}" in:body`,
-        "--json",
-        "number",
-        "--limit",
-        "1"
-      ],
-      {
-        encoding: "utf8"
-      }
-    );
-
-    return JSON.parse(output).length > 0;
-  } catch (error) {
-    throw new Error(
-      `Could not check the review queue safely: ${error.message}`
-    );
-  }
 }
 
 function publisherFromTitle(title) {
@@ -146,6 +109,17 @@ function htmlAttributes(tag) {
   return attributes;
 }
 
+function extractArticleText(html) {
+  const match = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i) ||
+    html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+  if (!match) return "";
+  const text = match[1]
+    .replace(/<(script|style|nav|header|footer|aside|form)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<br\s*\/?\s*>|<\/(p|h[1-6]|li)>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  return cleanText(decodeHtml(text), 12000);
+}
+
 function metaContent(html, wantedName) {
   for (const tag of html.match(/<meta\b[^>]*>/gi) || []) {
     const attributes = htmlAttributes(tag);
@@ -176,7 +150,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       throw new Error("source did not resolve to HTTPS");
     }
 
-    const html = (await response.text()).slice(0, 750000);
+    const html = (await response.text()).slice(0, 1500000);
     let canonicalUrl = "";
 
     for (const tag of html.match(/<link\b[^>]*>/gi) || []) {
@@ -197,6 +171,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       metaContent(html, "description") ||
       metaContent(html, "twitter:description");
     const verifiedPublisherName = metaContent(html, "og:site_name");
+    const articleText = extractArticleText(html);
     const summary = publisherDescription || fallbackSummary;
     const publisher = verifiedPublisherName || fallbackPublisher;
 
@@ -208,6 +183,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       url: canonicalUrl || finalUrl.toString(),
       summary: cleanText(summary, 450),
       publisher: cleanText(publisher, 120),
+      articleText,
       descriptionVerified: Boolean(publisherDescription),
       publisherVerified: Boolean(verifiedPublisherName)
     };
@@ -217,26 +193,38 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       url: feedUrl,
       summary: fallbackSummary,
       publisher: fallbackPublisher,
+      articleText: "",
       descriptionVerified: false,
       publisherVerified: false
     };
   }
 }
 
+function repeatsLongSourcePhrase(source, candidate) {
+  const words = value => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  const sourceWords = words(source);
+  const candidateWords = words(candidate);
+  if (candidateWords.length < 8) return true;
+  const phrases = new Set();
+  for (let i = 0; i <= sourceWords.length - 6; i += 1) phrases.add(sourceWords.slice(i, i + 6).join(" "));
+  let matches = 0;
+  let total = 0;
+  for (let i = 0; i <= candidateWords.length - 6; i += 1) {
+    total += 1;
+    if (phrases.has(candidateWords.slice(i, i + 6).join(" "))) matches += 1;
+  }
+  return total > 0 && matches / total > 0.08;
+}
+
 async function createAiDraft({
   title,
   summary,
   category,
-  publisher
+  publisher,
+  sourceText
 }) {
-  if (!aiConfigured) {
-    return null;
-  }
-
-  if (String(summary || "").trim().length < 80) {
-    throw new Error(
-      "RSS snippet is too short for a responsible 90–110 word draft; held for review."
-    );
+  if (String(sourceText || "").trim().length < 1000) {
+    throw new Error("Original article text is unavailable or too short.");
   }
 
   const endpoint =
@@ -274,13 +262,13 @@ async function createAiDraft({
               content: [
                 "You prepare cautious, original draft copy for a South African news site.",
 
-                "Use ONLY the supplied headline and extracted publisher-provided page description/snippet. You have not independently verified the article body. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
+                "Use only the supplied original article text. Do not add facts, names, numbers, dates, causes, or claims that are not supported by that text.",
 
-                "Write a neutral summary of 90–110 words in clear South African English, but only if the provided information genuinely supports that length without repetition or speculation.",
+                "Write a genuinely original concise summary in clear South African English. Do not copy sentences or distinctive phrases, reproduce quotations, or merely replace source words with synonyms. Use your own structure and wording; do not create a substitute for the original article.",
 
-                "If the snippet is too thin, ambiguous, or insufficient to support a reliable summary, set needs_review to true and explain why in editorial_note. Never pad the summary with generic claims to reach the word count.",
+                "Aim for 90–110 words only when the source supports that length. If the source is incomplete or unclear, set needs_review to true. Never invent or pad details.",
 
-                "Keep the category exactly as supplied. Use the supplied publisher string or an empty string; do not guess the publisher.",
+                "Create a new accurate headline that does not mimic the source headline. Keep the category exactly as supplied.",
 
                 "Return only valid JSON with keys headline, summary, needs_review, editorial_note."
               ].join(" ")
@@ -291,7 +279,7 @@ async function createAiDraft({
 
               content: JSON.stringify({
                 headline: title,
-                feed_snippet: summary,
+                original_article_text: sourceText,
                 category,
                 publisher
               })
@@ -361,6 +349,10 @@ async function createAiDraft({
     .split(/\s+/)
     .filter(Boolean)
     .length;
+
+  if (repeatsLongSourcePhrase(sourceText, headline + " " + draftSummary)) {
+    throw new Error("Draft has excessive six-word phrase overlap with the source; story skipped.");
+  }
 
   if (draft.needs_review !== false) {
     throw new Error(
@@ -437,12 +429,21 @@ for (const feed of feeds) {
         console.warn(`Skipping item without a valid HTTPS publisher URL: ${title}`);
         continue;
       }
+      const verifiedHost = new URL(normalizedSourceUrl).hostname;
+      if (!isTrustedPublisherHost(verifiedHost)) {
+        console.warn("Skipping unapproved publisher domain: " + verifiedHost);
+        continue;
+      }
+      if (!enrichedSource.publisherVerified || enrichedSource.articleText.length < 1000) {
+        console.warn("Skipping source without verified publisher metadata and substantial article text: " + verifiedHost);
+        continue;
+      }
       if (publishedStories.some(story => story.sourceUrl === normalizedSourceUrl)) continue;
 
       let draft = null;
 
       let draftStatus =
-        "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
+        "AI draft unavailable — story will be skipped unless GROQ_API_KEY is configured.";
 
       if (aiConfigured && !groqUnavailableForRun && aiDraftAttempts < maxAiDraftAttemptsPerRun) {
         try {
@@ -451,18 +452,19 @@ for (const feed of feeds) {
             title,
             summary: feedSummary,
             category: feed.category,
-            publisher
+            publisher,
+            sourceText: enrichedSource.articleText
           });
 
           draftStatus =
-            "AI draft generated from the RSS headline and snippet. It has not been independently fact-checked.";
+            "AI draft generated from extracted publisher article text. It has not been independently fact-checked.";
         } catch (error) {
           console.error(
             `AI draft failed for one story (${feed.category}): ${error.message}`
           );
 
           draftStatus =
-            "AI draft failed for this item; fill the publication draft manually or reject this story.";
+            "AI draft failed; this story will be skipped and not auto-published.";
           if (/Groq API returned HTTP (400|429)/i.test(error.message)) {
             groqUnavailableForRun = true;
             console.warn("Disabling further Groq requests for this run after a non-retryable API response.");
@@ -470,28 +472,26 @@ for (const feed of feeds) {
         }
       } else if (aiConfigured && (groqUnavailableForRun || aiDraftAttempts >= maxAiDraftAttemptsPerRun)) {
         draftStatus = groqUnavailableForRun
-          ? "Groq unavailable/rate-limited for this run; held for manual editorial review."
-          : "AI draft request limit reached for this run; held for manual editorial review.";
+          ? "Groq unavailable/rate-limited for this run; remaining stories will be skipped."
+          : "AI draft request limit reached for this run; remaining stories will be skipped.";
       }
 
-      // A Groq draft is helpful but must not be a hard dependency for publication:
-      // rate limits should not stall the whole pipeline when the publisher itself
-      // provides a substantial description. In that case publish the source's own
-      // text verbatim (never a feed fallback); otherwise keep the item in review.
-      const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
+      // A valid Groq draft is mandatory. If Groq fails or any source check fails,\n      // skip the story rather than publishing copied or incomplete source text.\n      const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
       const isRecent =
         Number.isFinite(publishedDateMs) &&
         publishedDateMs <= Date.now() + 5 * 60 * 1000 &&
         Date.now() - publishedDateMs <= 72 * 60 * 60 * 1000;
       const safeForAutoPublish =
+        Boolean(draft) &&
+        Boolean(enrichedSource.articleText) &&
+        enrichedSource.articleText.length >= 1000 &&
         enrichedSource.descriptionVerified &&
         enrichedSource.publisherVerified &&
-        feedSummary.length >= 150 &&
         publisher.length > 1 &&
         isRecent &&
-        !sourceHost.endsWith("news.google.com");
+        isTrustedPublisherHost(sourceHost);
 
-      if (safeForAutoPublish) {
+      if (safeForAutoPublish && draft) {
         let slug = slugify(draft.headline) || "news";
         if (publishedStories.some(story => story.slug === slug) ||
             autoPublishedStories.some(story => story.slug === slug)) {
@@ -502,6 +502,7 @@ for (const feed of feeds) {
           title: draft.headline,
           category: feed.category,
           summary: draft.summary,
+          author: "SA News Hub Editorial Desk",
           publisher,
           sourceUrl: normalizedSourceUrl,
           publishedAt: new Date(publishedDateMs).toISOString()
@@ -512,117 +513,8 @@ for (const feed of feeds) {
         continue;
       }
 
-      if (issueExists(normalizedSourceUrl)) {
-        continue;
-      }
+      console.log("Story did not pass automatic publication checks; skipped: " + title);
 
-      const body = [
-        "## Pending editorial review",
-        "",
-
-        "**Status:** PENDING — this story is not published on SA News Hub.",
-
-        `**Category:** ${feed.category}`,
-
-        `**Feed:** ${parsed.title || "Google News RSS"}`,
-
-        `**Published:** ${published}`,
-
-        `**AI preparation:** ${draftStatus}`,
-
-        "",
-
-        "### Feed summary",
-        feedSummary,
-
-        "",
-
-        "### Original story link",
-        url,
-
-        "",
-
-        "### Quick review checklist",
-
-        "- [ ] Open the source link and check that the article is real, current, and relevant.",
-
-        "- [ ] Compare the draft with the source; reject it if the draft adds unsupported details or gets anything wrong.",
-
-        "- [ ] If it looks good, comment exactly /approve. If not, close the issue without approving it.",
-
-        "",
-
-        "### Publication draft",
-        "",
-
-        "The draft is a starting point, not independent verification. The AI only receives the RSS headline and snippet, which may omit important context.",
-
-        ...(draft?.editorialNote
-          ? [`**AI note:** ${draft.editorialNote}`, ""]
-          : []),
-
-        "#### Approved headline",
-
-        draft?.headline ||
-          `[AI draft unavailable — suggested feed headline: ${title}]`,
-
-        "",
-
-        "#### Publication category",
-        feed.category,
-
-        "",
-
-        "#### Original summary",
-
-        draft?.summary ||
-          `[Draft unavailable. Feed summary: ${feedSummary}]`,
-
-        "",
-
-        "#### Publisher attribution",
-
-        publisher ||
-          "[Check the original article and enter the publisher name]",
-
-        "",
-
-        "#### Original source URL",
-        url,
-
-        "",
-
-        "Commenting /approve prepares a pull request; it does not publish immediately. The story becomes live only after you review and merge that pull request into main."
-      ].join("\n");
-
-      const issueUrl = execFileSync(
-        "gh",
-        [
-          "issue",
-          "create",
-          "--repo",
-          repo,
-
-          "--title",
-          `[Pending review] [${feed.category}] ${(draft?.headline || title).slice(0, 150)}`,
-
-          "--body",
-          body
-        ],
-        {
-          encoding: "utf8"
-        }
-      ).trim();
-
-      newStories.push({
-        category: feed.category,
-        title: draft?.headline || title,
-        url,
-        published,
-        summary: draft?.summary || feedSummary,
-        issueUrl,
-        ai: Boolean(draft)
-      });
     }
   } catch (error) {
     console.error(
@@ -638,67 +530,7 @@ if (autoPublishedStories.length) {
   execFileSync("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
   execFileSync("git", ["add", newsFilePath]);
   execFileSync("git", ["commit", "-m", `Publish ${autoPublishedStories.length} verified news story/stories`]);
-  execFileSync("git", ["push", "origin", "HEAD:main"]);
+  execFileSync("git", ["push", "origin", "HEAD:" + (process.env.GITHUB_REF_NAME || "main")]);
   console.log(`Published ${autoPublishedStories.length} story/stories to src/src/data/news.js.`);
 }
 
-if (newStories.length) {
-  const reviewRows = newStories
-    .map(story =>
-      "• HELD FOR REVIEW [" +
-      story.category +
-      "]: " +
-      story.title +
-      "\n  Source: " +
-      story.url +
-      "\n  Review issue: " +
-      story.issueUrl +
-      "\n  AI draft: " +
-      (story.ai
-        ? "prepared but not independently verified"
-        : "not available") +
-      "\n  Summary: " +
-      story.summary +
-      "\n"
-    )
-    .join("\n");
-
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to: process.env.NEWS_APPROVER_EMAIL,
-
-    subject:
-      "SA News Hub: " +
-      newStories.length +
-      " stories held for editorial review",
-
-    text:
-      (autoPublishedStories.length
-        ? "Automatically published after strict checks:\n\n" +
-          autoPublishedStories.map(story => "• " + story.title + "\n  " + story.sourceUrl).join("\n\n") + "\n\n"
-        : "") +
-      "Stories held for editorial review:\n\n" +
-      reviewRows +
-      "\nReview queue: https://github.com/" +
-      repo +
-      "\nLive site: https://sa-news-hub.pages.dev/\n\nOnly stories with a recent timestamp, direct HTTPS publisher page, publisher-provided description and site name, and a validated AI draft are auto-published."
-  });
-
-  console.log(
-    "Created " +
-    newStories.length +
-    " editorial review issue(s); email notification sent."
-  );
-} else if (autoPublishedStories.length) {
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to: process.env.NEWS_APPROVER_EMAIL,
-    subject: "SA News Hub: " + autoPublishedStories.length + " new story/stories published",
-    text: "Published stories:\n\n" +
-      autoPublishedStories.map(story => "• " + story.title + "\n  " + story.sourceUrl).join("\n\n") +
-      "\n\nLive site: https://sa-news-hub.pages.dev/"
-  });
-  console.log("Published " + autoPublishedStories.length + " story/stories; email notification sent.");
-} else {
-  console.log("No eligible new stories found; no email sent.");
-}
