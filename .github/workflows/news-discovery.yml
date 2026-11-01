@@ -1,4 +1,4 @@
-name: Discover news and email editorial review queue
+name: Automatically discover and publish verified news
 
 on:
   schedule:
@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  issues: write
 
 concurrency:
   group: news-discovery
@@ -27,15 +26,12 @@ jobs:
           node-version: "20"
 
       - name: Install temporary workflow dependencies
-        run: npm install --no-save rss-parser nodemailer
+        run: npm install --no-save rss-parser
 
-      - name: Find new stories, prepare optional AI drafts, and email the review queue
+      - name: Fetch original articles, generate original summaries, and publish eligible stories
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          NEWS_APPROVER_EMAIL: ${{ secrets.NEWS_APPROVER_EMAIL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: node scripts/discover-news.mjs
