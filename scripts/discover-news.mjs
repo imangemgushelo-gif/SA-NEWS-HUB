@@ -46,7 +46,7 @@ const feeds = [
 
 const trustedPublisherDomains = new Set(["bbc.com","bbc.co.uk","reuters.com","apnews.com","aljazeera.com","enca.com","news24.com","timeslive.co.za","businesslive.co.za","moneyweb.co.za","dailymaverick.co.za","sowetanlive.co.za","iol.co.za","citizen.co.za","ewn.co.za","supersport.com","sport24.co.za","techcentral.co.za"]);
 function isTrustedPublisherHost(hostname) {
-  const host = hostname.toLowerCase().replace(/^www\\./, "");
+  const host = hostname.toLowerCase().replace(/^www\./, "");
   return [...trustedPublisherDomains].some(domain => host === domain || host.endsWith("." + domain));
 }
 
