@@ -69,37 +69,6 @@ function slugify(value) {
     .slice(0, 70);
 }
 
-function issueExists(url) {
-  try {
-    const output = execFileSync(
-      "gh",
-      [
-        "issue",
-        "list",
-        "--repo",
-        repo,
-        "--state",
-        "open",
-        "--search",
-        `"${url}" in:body`,
-        "--json",
-        "number",
-        "--limit",
-        "1"
-      ],
-      {
-        encoding: "utf8"
-      }
-    );
-
-    return JSON.parse(output).length > 0;
-  } catch (error) {
-    throw new Error(
-      `Could not check the review queue safely: ${error.message}`
-    );
-  }
-}
-
 function publisherFromTitle(title) {
   const match = title.match(/\s+-\s+([^\-].*)$/);
 
@@ -223,6 +192,18 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       publisherVerified: false
     };
   }
+}
+
+function repeatsLongSourcePhrase(source, candidate) {
+  const words = value => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  const sourceWords = words(source);
+  const candidateWords = words(candidate);
+  const phrases = new Set();
+  for (let i = 0; i <= sourceWords.length - 8; i += 1) phrases.add(sourceWords.slice(i, i + 8).join(" "));
+  for (let i = 0; i <= candidateWords.length - 8; i += 1) {
+    if (phrases.has(candidateWords.slice(i, i + 8).join(" "))) return true;
+  }
+  return false;
 }
 
 async function createAiDraft({
@@ -358,6 +339,10 @@ async function createAiDraft({
     .split(/\s+/)
     .filter(Boolean)
     .length;
+
+  if (repeatsLongSourcePhrase(sourceText, headline + " " + draftSummary)) {
+    throw new Error("Draft repeats an eight-word phrase from the source; story skipped.");
+  }
 
   if (draft.needs_review !== false) {
     throw new Error(
