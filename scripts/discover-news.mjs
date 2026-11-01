@@ -135,12 +135,12 @@ function htmlAttributes(tag) {
 }
 
 function extractArticleText(html) {
-  const match = html.match(/<article\\b[^>]*>([\\s\\S]*?)<\\/article>/i) ||
-    html.match(/<main\\b[^>]*>([\\s\\S]*?)<\\/main>/i);
+  const match = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i) ||
+    html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
   if (!match) return "";
   const text = match[1]
-    .replace(/<(script|style|nav|header|footer|aside|form)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi, " ")
-    .replace(/<br\\s*\\/?\\s*>|<\\/(p|h[1-6]|li)>/gi, " ")
+    .replace(/<(script|style|nav|header|footer|aside|form)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<br\s*\/?\s*>|<\/(p|h[1-6]|li)>/gi, " ")
     .replace(/<[^>]+>/g, " ");
   return cleanText(decodeHtml(text), 12000);
 }
