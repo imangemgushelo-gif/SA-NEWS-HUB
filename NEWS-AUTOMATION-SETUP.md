@@ -2,10 +2,10 @@
 
 ## Current behaviour
 
-- GitHub Actions checks RSS feeds every 30 minutes. GitHub may delay scheduled runs.
+- GitHub Actions is configured to check RSS feeds every five minutes. GitHub may delay scheduled runs.
 - You can also start a run manually using Actions → Automatically discover and publish verified news → Run workflow (workflow_dispatch).
-- The workflow follows RSS links to publisher pages, extracts article text, and asks Groq to draft a new headline and summary.
-- Automatic publication requires a successful AI draft and the source checks in scripts/discover-news.mjs. Failed or incomplete items should be skipped.
+- The script follows RSS links to publisher pages, extracts article text, and asks Groq to draft a new headline and 90–110 word summary.
+- Automatic publication requires a trusted HTTPS publisher domain, publisher metadata, substantial extracted article text, a recent source timestamp, a valid AI draft, and passing phrase-overlap checks. Failed checks skip the story.
 - Eligible stories are committed to the branch that triggered the workflow. Cloudflare Pages creates a preview for a branch; production changes only when changes reach the configured production branch.
 
 ## Required secret
@@ -16,10 +16,10 @@ The script currently requests Groq model openai/gpt-oss-20b. Model availability 
 
 ## How to verify a run
 
-A green workflow run only means the script completed; it does not prove that a story was published. Read the logs for the number of stories published and for reasons items were skipped. Confirm the branch's Cloudflare preview before merging changes into the production branch.
+A green workflow run only means the script completed; it does not prove that a story was published. Read the logs for the published-story count or reasons items were skipped. Confirm the branch's Cloudflare preview before merging into production.
 
 ## Editorial and copyright limitations
 
-Automated phrase-overlap checks are only a warning filter. They cannot guarantee that a summary is original, accurate, legally cleared, or suitable for Google AdSense. AI can make mistakes. Keep publisher attribution and source links visible, and add original reporting, analysis, or useful context. Do not treat AI rewriting as a substitute for editorial review.
+Automated phrase-overlap checks are only screening filters. They cannot guarantee originality, accuracy, legal clearance, or Google AdSense approval. AI can make mistakes. Keep publisher attribution and source links visible, and add original reporting, analysis, or useful context. AI rewriting is not a substitute for editorial review.
 
-The schedule is every 30 minutes, not every five minutes. Scheduled GitHub Actions runs are not guaranteed to start at the exact minute.
+The five-minute schedule is a request to GitHub Actions, not a guarantee that every run starts exactly on time.
