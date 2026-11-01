@@ -50,6 +50,7 @@ const parser = new Parser({
 
 const repo = process.env.GITHUB_REPOSITORY;
 const autoPublishedStories = [];
+const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 let groqUnavailableForRun = false;
 let aiDraftAttempts = 0;
 const maxAiDraftAttemptsPerRun = 12;
