@@ -2,7 +2,7 @@ name: Automatically discover and publish verified news
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
