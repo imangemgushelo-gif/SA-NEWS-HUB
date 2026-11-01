@@ -44,6 +44,12 @@ const feeds = [
   }
 ];
 
+const trustedPublisherDomains = new Set(["bbc.com","bbc.co.uk","reuters.com","apnews.com","aljazeera.com","enca.com","news24.com","timeslive.co.za","businesslive.co.za","moneyweb.co.za","dailymaverick.co.za","sowetanlive.co.za","iol.co.za","citizen.co.za","ewn.co.za","supersport.com","sport24.co.za","techcentral.co.za"]);
+function isTrustedPublisherHost(hostname) {
+  const host = hostname.toLowerCase().replace(/^www\\./, "");
+  return [...trustedPublisherDomains].some(domain => host === domain || host.endsWith("." + domain));
+}
+
 const parser = new Parser({
   timeout: 20000
 });
@@ -198,12 +204,16 @@ function repeatsLongSourcePhrase(source, candidate) {
   const words = value => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
   const sourceWords = words(source);
   const candidateWords = words(candidate);
+  if (candidateWords.length < 8) return true;
   const phrases = new Set();
-  for (let i = 0; i <= sourceWords.length - 8; i += 1) phrases.add(sourceWords.slice(i, i + 8).join(" "));
-  for (let i = 0; i <= candidateWords.length - 8; i += 1) {
-    if (phrases.has(candidateWords.slice(i, i + 8).join(" "))) return true;
+  for (let i = 0; i <= sourceWords.length - 6; i += 1) phrases.add(sourceWords.slice(i, i + 6).join(" "));
+  let matches = 0;
+  let total = 0;
+  for (let i = 0; i <= candidateWords.length - 6; i += 1) {
+    total += 1;
+    if (phrases.has(candidateWords.slice(i, i + 6).join(" "))) matches += 1;
   }
-  return false;
+  return total > 0 && matches / total > 0.08;
 }
 
 async function createAiDraft({
@@ -419,6 +429,15 @@ for (const feed of feeds) {
         console.warn(`Skipping item without a valid HTTPS publisher URL: ${title}`);
         continue;
       }
+      const verifiedHost = new URL(normalizedSourceUrl).hostname;
+      if (!isTrustedPublisherHost(verifiedHost)) {
+        console.warn("Skipping unapproved publisher domain: " + verifiedHost);
+        continue;
+      }
+      if (!enrichedSource.publisherVerified || enrichedSource.articleText.length < 1000) {
+        console.warn("Skipping source without verified publisher metadata and substantial article text: " + verifiedHost);
+        continue;
+      }
       if (publishedStories.some(story => story.sourceUrl === normalizedSourceUrl)) continue;
 
       let draft = null;
@@ -474,7 +493,7 @@ for (const feed of feeds) {
         enrichedSource.publisherVerified &&
         publisher.length > 1 &&
         isRecent &&
-        !sourceHost.endsWith("news.google.com");
+        isTrustedPublisherHost(sourceHost);
 
       if (safeForAutoPublish && draft) {
         let slug = slugify(draft.headline) || "news";
