@@ -351,7 +351,7 @@ async function createAiDraft({
     .length;
 
   if (repeatsLongSourcePhrase(sourceText, headline + " " + draftSummary)) {
-    throw new Error("Draft repeats an eight-word phrase from the source; story skipped.");
+    throw new Error("Draft has excessive six-word phrase overlap with the source; story skipped.");
   }
 
   if (draft.needs_review !== false) {
@@ -443,7 +443,7 @@ for (const feed of feeds) {
       let draft = null;
 
       let draftStatus =
-        "AI draft not configured — add the GROQ_API_KEY repository secret described in NEWS-AUTOMATION-SETUP.md.";
+        "AI draft unavailable — story will be skipped unless GROQ_API_KEY is configured.";
 
       if (aiConfigured && !groqUnavailableForRun && aiDraftAttempts < maxAiDraftAttemptsPerRun) {
         try {
@@ -457,14 +457,14 @@ for (const feed of feeds) {
           });
 
           draftStatus =
-            "AI draft generated from the RSS headline and snippet. It has not been independently fact-checked.";
+            "AI draft generated from extracted publisher article text. It has not been independently fact-checked.";
         } catch (error) {
           console.error(
             `AI draft failed for one story (${feed.category}): ${error.message}`
           );
 
           draftStatus =
-            "AI draft failed for this item; fill the publication draft manually or reject this story.";
+            "AI draft failed; this story will be skipped and not auto-published.";
           if (/Groq API returned HTTP (400|429)/i.test(error.message)) {
             groqUnavailableForRun = true;
             console.warn("Disabling further Groq requests for this run after a non-retryable API response.");
@@ -472,15 +472,11 @@ for (const feed of feeds) {
         }
       } else if (aiConfigured && (groqUnavailableForRun || aiDraftAttempts >= maxAiDraftAttemptsPerRun)) {
         draftStatus = groqUnavailableForRun
-          ? "Groq unavailable/rate-limited for this run; held for manual editorial review."
-          : "AI draft request limit reached for this run; held for manual editorial review.";
+          ? "Groq unavailable/rate-limited for this run; remaining stories will be skipped."
+          : "AI draft request limit reached for this run; remaining stories will be skipped.";
       }
 
-      // A Groq draft is helpful but must not be a hard dependency for publication:
-      // rate limits should not stall the whole pipeline when the publisher itself
-      // provides a substantial description. In that case publish the source's own
-      // text verbatim (never a feed fallback); otherwise keep the item in review.
-      const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
+      // A valid Groq draft is mandatory. If Groq fails or any source check fails,\n      // skip the story rather than publishing copied or incomplete source text.\n      const sourceHost = new URL(normalizedSourceUrl).hostname.toLowerCase();
       const isRecent =
         Number.isFinite(publishedDateMs) &&
         publishedDateMs <= Date.now() + 5 * 60 * 1000 &&
