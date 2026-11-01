@@ -1,13 +1,10 @@
 import Parser from "rss-parser";
-import nodemailer from "nodemailer";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
 const required = [
-  "GMAIL_USER",
-  "GMAIL_APP_PASSWORD",
-  "NEWS_APPROVER_EMAIL",
-  "GITHUB_REPOSITORY"
+  "GITHUB_REPOSITORY",
+  "GROQ_API_KEY"
 ];
 
 for (const key of required) {
@@ -51,21 +48,11 @@ const parser = new Parser({
   timeout: 20000
 });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
-});
-
 const repo = process.env.GITHUB_REPOSITORY;
-const newStories = [];
 const autoPublishedStories = [];
-const aiConfigured = Boolean(process.env.GROQ_API_KEY);
 let groqUnavailableForRun = false;
 let aiDraftAttempts = 0;
-const maxAiDraftAttemptsPerRun = 3;
+const maxAiDraftAttemptsPerRun = 12;
 const newsFilePath = "src/src/data/news.js";
 const newsFileText = await readFile(newsFilePath, "utf8");
 const newsMatch = newsFileText.match(/export\s+const\s+news\s*=\s*(\[[\s\S]*\])\s*;?/);
