@@ -133,6 +133,17 @@ function htmlAttributes(tag) {
   return attributes;
 }
 
+function extractArticleText(html) {
+  const match = html.match(/<article\\b[^>]*>([\\s\\S]*?)<\\/article>/i) ||
+    html.match(/<main\\b[^>]*>([\\s\\S]*?)<\\/main>/i);
+  if (!match) return "";
+  const text = match[1]
+    .replace(/<(script|style|nav|header|footer|aside|form)\\b[^>]*>[\\s\\S]*?<\\/\\1>/gi, " ")
+    .replace(/<br\\s*\\/?\\s*>|<\\/(p|h[1-6]|li)>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  return cleanText(decodeHtml(text), 12000);
+}
+
 function metaContent(html, wantedName) {
   for (const tag of html.match(/<meta\b[^>]*>/gi) || []) {
     const attributes = htmlAttributes(tag);
@@ -163,7 +174,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       throw new Error("source did not resolve to HTTPS");
     }
 
-    const html = (await response.text()).slice(0, 750000);
+    const html = (await response.text()).slice(0, 1500000);
     let canonicalUrl = "";
 
     for (const tag of html.match(/<link\b[^>]*>/gi) || []) {
@@ -184,6 +195,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       metaContent(html, "description") ||
       metaContent(html, "twitter:description");
     const verifiedPublisherName = metaContent(html, "og:site_name");
+    const articleText = extractArticleText(html);
     const summary = publisherDescription || fallbackSummary;
     const publisher = verifiedPublisherName || fallbackPublisher;
 
@@ -195,6 +207,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       url: canonicalUrl || finalUrl.toString(),
       summary: cleanText(summary, 450),
       publisher: cleanText(publisher, 120),
+      articleText,
       descriptionVerified: Boolean(publisherDescription),
       publisherVerified: Boolean(verifiedPublisherName)
     };
@@ -204,6 +217,7 @@ async function enrichSource(feedUrl, fallbackSummary, fallbackPublisher) {
       url: feedUrl,
       summary: fallbackSummary,
       publisher: fallbackPublisher,
+      articleText: "",
       descriptionVerified: false,
       publisherVerified: false
     };
@@ -214,16 +228,11 @@ async function createAiDraft({
   title,
   summary,
   category,
-  publisher
+  publisher,
+  sourceText
 }) {
-  if (!aiConfigured) {
-    return null;
-  }
-
-  if (String(summary || "").trim().length < 80) {
-    throw new Error(
-      "RSS snippet is too short for a responsible 90–110 word draft; held for review."
-    );
+  if (String(sourceText || "").trim().length < 1000) {
+    throw new Error("Original article text is unavailable or too short.");
   }
 
   const endpoint =
@@ -261,13 +270,13 @@ async function createAiDraft({
               content: [
                 "You prepare cautious, original draft copy for a South African news site.",
 
-                "Use ONLY the supplied headline and extracted publisher-provided page description/snippet. You have not independently verified the article body. Do not invent or infer facts, names, numbers, quotes, dates, causes, consequences, or claims.",
+                "Use only the supplied original article text. Do not add facts, names, numbers, dates, causes, or claims that are not supported by that text.",
 
-                "Write a neutral summary of 90–110 words in clear South African English, but only if the provided information genuinely supports that length without repetition or speculation.",
+                "Write a genuinely original concise summary in clear South African English. Do not copy sentences or distinctive phrases, reproduce quotations, or merely replace source words with synonyms. Use your own structure and wording; do not create a substitute for the original article.",
 
-                "If the snippet is too thin, ambiguous, or insufficient to support a reliable summary, set needs_review to true and explain why in editorial_note. Never pad the summary with generic claims to reach the word count.",
+                "Aim for 90–110 words only when the source supports that length. If the source is incomplete or unclear, set needs_review to true. Never invent or pad details.",
 
-                "Keep the category exactly as supplied. Use the supplied publisher string or an empty string; do not guess the publisher.",
+                "Create a new accurate headline that does not mimic the source headline. Keep the category exactly as supplied.",
 
                 "Return only valid JSON with keys headline, summary, needs_review, editorial_note."
               ].join(" ")
@@ -278,7 +287,7 @@ async function createAiDraft({
 
               content: JSON.stringify({
                 headline: title,
-                feed_snippet: summary,
+                original_article_text: sourceText,
                 category,
                 publisher
               })
