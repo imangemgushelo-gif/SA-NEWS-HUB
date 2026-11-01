@@ -448,7 +448,8 @@ for (const feed of feeds) {
             title,
             summary: feedSummary,
             category: feed.category,
-            publisher
+            publisher,
+            sourceText: enrichedSource.articleText
           });
 
           draftStatus =
